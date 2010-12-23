@@ -3,19 +3,16 @@ function Digger(element)
 {
 	this.canvas = element;
 	this.canvas.focus() 
-	this.display = new Display(this.canvas);
-	this.loadCounter = 0;
-	this.loadAudioData(this.soundData, this.soundData, this.loaded.delegate(this));
-	this.loadImageData(this.imageData, this.display.imageData, this.loaded.delegate(this));
+	this.loader = new Loader();
+	this.loader.loadAudioData(this.soundData);
+	this.loader.loadImageData(this.imageData);
+	this.loader.start(this.loaderCallback.delegate(this));
 }
 
-Digger.prototype.loaded = function()
+Digger.prototype.loaderCallback = function()
 {
-	this.loadCounter++;
-	if (this.loadCounter == 2)
-	{
 	this.blink = 0;
-	this.display.init();
+	this.display = new Display(this.canvas, this.imageData);
 	this.restart();
 
 	this.mouseDownHandler = this.mouseDown.delegate(this);
@@ -37,7 +34,6 @@ Digger.prototype.loaded = function()
 	document.addEventListener("keydown", this.keyDownHandler, false);
 	document.addEventListener("keyup", this.keyUpHandler, false);
 	window.setInterval(this.intervalHandler, 50);
-	}
 }
 
 Digger.prototype.keyDown = function(e)
@@ -48,7 +44,7 @@ Digger.prototype.keyDown = function(e)
 	else if (e.keyCode == 40) { e.preventDefault(); this.addKey(Key.down);  } // down
 	else if (e.keyCode == 27) { e.preventDefault(); this.addKey(Key.reset); } // esc
 	else if (e.keyCode == 32) { e.preventDefault(); this.nextLevel();        } // space
-	else if (!this.isAlive) { e.preventDefault(); this.addKey(Key.reset); }
+	else if (!this.isAlive()) { e.preventDefault(); this.addKey(Key.reset); }
 }
 
 Digger.prototype.keyUp = function(e)
@@ -115,8 +111,8 @@ Digger.prototype.touchEnd = function(e)
 
 Digger.prototype.pressDown = function(x, y)
 {
-	if (!this.isAlive)
-		this.keyDown(Key.reset);
+	if (!this.isAlive())
+		this.addKey(Key.reset);
 	else
 		this.touchPosition = new Position(x, y);	
 }
@@ -151,10 +147,10 @@ Digger.prototype.pressMove = function(x, y)
 Digger.prototype.pressUp = function()
 {
 	this.touchPosition = null;
-	this.keyUp(Key.left);
-	this.keyUp(Key.right);
-	this.keyUp(Key.up);
-	this.keyUp(Key.down);
+	this.removeKey(Key.left);
+	this.removeKey(Key.right);
+	this.removeKey(Key.up);
+	this.removeKey(Key.down);
 }
 
 Digger.prototype.addKey = function(key)
@@ -263,46 +259,6 @@ Digger.prototype.paint = function()
 {
 	var blink = ((this.blink + 4) % 6);
 	this.display.paint(this, this.level, blink);
-}
-
-Digger.prototype.loadImageData = function(source, target, callback)
-{
-	var count = 0;
-	for (var i = 0; i < source.length; i++)
-	{
-		var image = new Image();
-		image.onload = function()
-		{
-			count++;
-			if (count == source.length)
-				callback();
-		}
-		image.src = "data:image/png;base64," + source[i];
-		target[i] = image;
-	}
-}
-
-Digger.prototype.loadAudioData = function(source, target, callback)
-{
-	// var count = 0;
-	for (var i = 0; i < source.length; i++)
-	{
-		var audio = document.createElement('audio');
-		if ((audio != null) && (audio.canPlayType("audio/wav")))
-		{
-			audio.src = "data:audio/wav;base64," + source[i];
-			// audio.onload = function() 
-			// {
-			//	count++;
-			//	if (count == data.length)
-			//		callback();
-			// }
-			audio.preload = "auto";
-			audio.load();
-		}
-		target[i] = audio;
-	}
-	callback();
 }
 
 function Level(data)
@@ -800,14 +756,11 @@ Ghost.prototype.getImageIndex = function()
 	return [ 4, 4, 5, 6, 3 ][this.direction];
 }
 
-function Display(canvas)
+function Display(canvas, imageData)
 {
 	this.context = canvas.getContext("2d");
-	this.imageData = [];
-}
-
-Display.prototype.init = function()
-{
+	this.imageData = imageData;
+	
 	this.context.fillStyle = "#00ffff"; 
 	this.context.fillRect(0,  2, 320, 4);
 	this.context.fillRect(0, 26, 320, 4);
@@ -892,6 +845,57 @@ Display.prototype.getSpriteIndex = function(value, blink)
 	}
 	return value.getImageIndex();
 }
+
+function Loader()
+{
+	this.count = 0;
+	this.imageData = null;
+	this.audioData = null;
+}
+
+Loader.prototype.loadImageData = function(data)
+{
+	this.count += data.length;
+	this.imageData = data;
+}
+
+Loader.prototype.loadAudioData = function(data)
+{
+	this.audioData = data;
+}
+
+Loader.prototype.start = function(callback)
+{
+	for (var i = 0; i < this.audioData.length; i++)
+	{
+		var audio = document.createElement('audio');
+		if ((audio != null) && (audio.canPlayType("audio/wav")))
+		{
+			audio.src = "data:audio/wav;base64," + this.audioData[i];
+			audio.preload = "auto";
+			audio.load();
+		}
+		this.audioData[i] = audio;
+	}
+
+	var count = this.count;
+	var index = 0;
+	for (var i = 0; i < this.imageData.length; i++)
+	{
+		var image = new Image();
+		image.onload = function()
+		{
+			index++;
+			if (index == count)
+				callback();
+		}
+		image.src = "data:image/png;base64," + this.imageData[i];
+		this.imageData[i] = image;
+	}	
+}
+
+
+
 
 Function.prototype.delegate = function(obj)
 {
