@@ -1,153 +1,178 @@
 
-function Digger(element)
-{
-	this.canvas = element;
-	this.canvas.focus() 
-	this.loader = new Loader();
-	this.loader.loadAudioData(this.soundData);
-	this.loader.loadImageData(this.imageData);
-	this.loader.start(this.loaderCallback.delegate(this));
+function Base64Reader(data)
+{ 
+	this.alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+	this.data = data;
+	this.position = 0;
+	this.bits = 0;
+	this.bitsLength = 0;
 }
 
-Digger.prototype.loaderCallback = function()
+Base64Reader.prototype.readByte = function()
 {
-	this.display = new Display(this.canvas, this.imageData);
-	this.input = new Input(this.canvas, this);
-	this.blink = 0;
-	this.restart();
-	this.intervalHandler = this.interval.delegate(this);
-	window.setInterval(this.intervalHandler, 50);
-}
-
-Digger.prototype.addKey = function(key)
-{
-	if (key < 4)
+	if (this.bitsLength === 0)
 	{
-		this.keys[key] = true;
-	}
-	else if (key == Key.reset)
-	{
-		this.lives--;
-		if (this.lives >= 0)
-			this.loadLevel();
-		else
-			this.restart();
-	}
-}
-
-Digger.prototype.removeKey = function(key)
-{
-	if (key < 4)
-		this.keysRelease[key] = true;
-}
-
-Digger.prototype.restart = function()
-{
-	this.lives = 20;
-	this.score = 0;
-	this.room = 0;
-	this.loadLevel();
-}
-
-Digger.prototype.loadLevel = function()
-{
-	this.level = new Level(this.levelData[this.room])
-	this.keys = [ false, false, false, false ];
-	this.keysRelease = [ false, false, false, false ];
-	this.tick = 0;
-	this.paint();
-}
-
-Digger.prototype.nextLevel = function()
-{
-	if (this.room < (this.levelData.length - 1))
-	{
-		this.room++;
-		this.loadLevel();
-	}
-}
-
-Digger.prototype.isAlive = function()
-{
-	return (this.level == null) || (this.level.player.alive);
-}
-
-Digger.prototype.interval = function()
-{
-	this.tick++;
-	this.blink++;
-	if (this.blink == 6)
-		this.blink = 0;
-	if ((this.tick % 2) == 0)
-	{
-		this.level.soundTable = [];
-		for (var i = 0; i < this.soundData.length; i++)
-			this.level.soundTable[i] = false;
-		
-		// keyboard
-		for (var i = 0; i < 4; i++)
+		var tailBits = 0;
+		while (this.position < this.data.length && this.bitsLength < 24)
 		{
-			if (this.keysRelease[i])
+			var ch = this.data.charAt(this.position++);
+			var index = this.alphabet.indexOf(ch);
+			if (index < 64)
 			{
-				this.keys[i] = false;
-				this.keysRelease[i] = false;
+				this.bits = (this.bits << 6) | index;
 			}
-		}
-
-		this.level.update();
-		if (this.level.movePlayer(this.keys))
-		{
-			this.nextLevel();
-		}
-		else
-		{
-			this.level.move();
-		
-			// play sound
-			for (var i = 0; i < this.level.soundTable.length; i++)
+			else 
 			{
-				if (this.level.soundTable[i] && this.soundData[i])
-				{
-					if (!!this.soundData[i].currentTime)
-					{
-						this.soundData[i].pause();
-						this.soundData[i].currentTime = 0;
-					}
-					this.soundData[i].play();
-					break;
-				}
+				this.bits <<= 6;
+				tailBits += 6;
 			}
+			this.bitsLength += 6;
 		}
+		if ((this.position >= this.data.length) && (this.bitsLength === 0))
+		{
+			return -1;
+		}
+		tailBits = (tailBits == 6) ? 8 : (tailBits == 12) ? 16 : tailBits;
+		this.bits = this.bits >> tailBits;
+		this.bitsLength -= tailBits;
 	}
+	this.bitsLength -= 8;
+	return (this.bits >> this.bitsLength) & 0xff;
+};
 
-	this.paint();
-}
+var Direction = 
+{ 
+	none:0, 
+	left:1, 
+	right:2, 
+	up:3, 
+	down:4 
+};
 
-Digger.prototype.paint = function()
+function Player(position)
 {
-	var blink = ((this.blink + 4) % 6);
-	this.display.paint(this, this.level, blink);
+	this.position = position;
+	this.alive = true;
+	this.direction = Direction.none;
+	this.stone = [ false, false ];
+	this.step = 0;
 }
+
+Player.prototype.getImageIndex = function()
+{
+	if (this.alive)
+	{
+		if ((this.direction == Direction.left) && (this.step < 6))
+		{ 
+			return [ 16, 17, 18, 19, 18, 17 ][this.step]; 
+		}
+		else if ((this.direction == Direction.right) && (this.step < 6))
+		{
+			return [ 20, 21, 22, 23, 22, 21 ][this.step];
+		}
+		else if ((this.direction == Direction.up) && (this.step < 2))
+		{
+			return [ 24, 25 ][this.step];
+		}
+		else if ((this.direction == Direction.down) && (this.step < 2))
+		{
+			return [ 26, 27 ][this.step];
+		}
+		return [ 15, 15, 15, 15, 15, 15, 15, 15, 28, 28, 15, 15, 28, 28, 15, 15, 15, 15, 15, 15, 29, 29, 30, 30, 29, 29, 15, 15, 15, 15 ][this.step];
+	}
+	return 31;
+};
+
+function Ghost(position, type)
+{
+	this.position = position;
+	this.type = type;
+	this.alive = true;
+	this.direction = Direction.none;
+	this.lastTurn = Direction.none;
+}
+
+Ghost.prototype.getImageIndex = function()
+{
+	return [ 4, 4, 5, 6, 3 ][this.direction];
+};
+
+var Sprite = 
+{ 
+	nothing:0, 
+	stone:1, 
+	ground:2, 
+	ghost180:3, 
+	uvexit:4, 
+	diamond:5, 
+	wall:6, 
+	ghost90L:7, 
+	marker:8, 
+	uvstone:9, 
+	player:10, 
+	ghost90LR: 11, 
+	exit:12, 
+	buffer:13, 
+	changer:14, 
+	ghost90R:15 
+};
+
+var Key = 
+{ 
+	left:0, 
+	right:1, 
+	up: 2, 
+	down: 3, 
+	reset:4 
+};
+
+var Sound = 
+{ 
+	diamond:0, 
+	stone: 1, 
+	step:2 
+};
+
+function Position()
+{
+	if (arguments.length == 1) // copy constructor
+	{
+		this.x = arguments[0].x;	
+		this.y = arguments[0].y;	
+	}
+	if (arguments.length == 2) // (x, y)
+	{
+		this.x = arguments[0];
+		this.y = arguments[1];
+	}
+}
+
+Position.prototype.equals = function(position)
+{
+	return (this.x == position.x) && (this.y == position.y);
+};
 
 function Level(data)
 {
+	var i, x, y;
+	
 	var reader = new Base64Reader(data);
 
 	this.map = [];
-	for (var x = 0; x < 20; x++)
+	for (x = 0; x < 20; x++)
 	{
 		this.map[x] = [];
 	}
-	for (var y = 0; y < 14; y++)
+	for (y = 0; y < 14; y++)
 	{
-		for (var x = 0; x < 10; x++)
+		for (x = 0; x < 10; x++)
 		{
-			var data = reader.readByte();
-			this.map[x*2+1][y] = data & 0x0f;
-			this.map[x*2][y] = data >> 4;
+			var b = reader.readByte();
+			this.map[x*2+1][y] = b & 0x0f;
+			this.map[x*2][y] = b >> 4;
 		}
 	}
-	for (var i = 0; i < 5; i++)
+	for (i = 0; i < 5; i++)
 	{
 		reader.readByte();
 	}
@@ -156,21 +181,21 @@ function Level(data)
 	this.diamonds = reader.readByte();
 	this.diamonds = (this.diamonds >> 4) * 10 + (this.diamonds & 0x0f);
 	var ghostData = [];
-	for (var i = 0; i < 8; i++)
+	for (i = 0; i < 8; i++)
 	{
 		ghostData.push(reader.readByte());
 	}
 	this.ghosts = [];
 	var index = 0;
-	for (var y = 0; y < 14; y++)
+	for (y = 0; y < 14; y++)
 	{
-		for (var x = 0; x < 20; x++)
+		for (x = 0; x < 20; x++)
 		{
 			if ((this.map[x][y] == Sprite.ghost90L) || (this.map[x][y] == Sprite.ghost90R) || (this.map[x][y] == Sprite.ghost90LR) || (this.map[x][y] == Sprite.ghost180))
 			{
 				var ghost = new Ghost(new Position(x, y), this.map[x][y]);
 				var info = ghostData[index >> 1];
-				if ((index & 1) != 0)
+				if ((index & 1) !== 0)
 				{
 					info = info & 0x0f;
 					ghost.lastTurn = Direction.right;
@@ -199,22 +224,26 @@ Level.prototype.update = function()
 		for (var x = 19; x >= 0; x--)
 		{
 			if (this.map[x][y] == Sprite.buffer)
+			{
 				this.map[x][y] = Sprite.nothing;
+			}
 		}
 	}
-}
+};
 
 Level.prototype.move = function()
 {	
+	var x, y, dx, dy;
+
 	// gravity for stones and diamonds
-	for (var y = 13; y >= 0; y--)
+	for (y = 13; y >= 0; y--)
 	{
-		for (var x = 19; x >= 0; x--)
+		for (x = 19; x >= 0; x--)
 		{
 			if ((this.map[x][y] == Sprite.stone) || (this.map[x][y] == Sprite.diamond) || (this.map[x][y] == Sprite.uvstone))
 			{
-				var dx = x;
-				var dy = y;
+				dx = x;
+				dy = y;
 				if (this.map[x][y+1] == Sprite.nothing)
 				{
 					dy = y + 1;
@@ -235,22 +264,26 @@ Level.prototype.move = function()
 						}
 					}
 					if ((this.map[x][y+1] == Sprite.changer) && ((this.map[x][y] == Sprite.stone) || (this.map[x][y] == Sprite.uvstone)) && (this.map[x][y+2] == Sprite.nothing))
+					{
 						dy = y + 2;
+					}
 				}
 				if ((dx != x) || (dy != y))
+				{
 					this.map[dx][dy] = Sprite.marker;
+				}
 			}
 		}
 	}
 
-	for (var y = 13; y >= 0; y--)
+	for (y = 13; y >= 0; y--)
 	{
-		for (var x = 19; x >= 0; x--)
+		for (x = 19; x >= 0; x--)
 		{
 			if ((this.map[x][y] == Sprite.stone) || (this.map[x][y] == Sprite.diamond) || (this.map[x][y] == Sprite.uvstone))
 			{
-				var dx = x;
-				var dy = y;
+				dx = x;
+				dy = y;
 				if (this.map[x][y+1] == Sprite.marker)
 				{
 					dy = y + 1;
@@ -271,7 +304,9 @@ Level.prototype.move = function()
 						}
 					}
 					if ((this.map[x][y+1] == Sprite.changer) && ((this.map[x][y] == Sprite.stone) || (this.map[x][y] == Sprite.uvstone)) && (this.map[x][y+2] == Sprite.marker))
+					{
 						dy = y + 2;
+					}
 				}
 				if ((dx != x) || (dy != y))
 				{
@@ -283,17 +318,25 @@ Level.prototype.move = function()
 					{
 						this.map[dx][dy] = this.map[x][y];
 						if (this.map[dx][dy] == Sprite.uvstone)
+						{
 							this.map[dx][dy] = Sprite.stone;
+						}
 					}
 					this.map[x][y] = Sprite.nothing;
 
 					if ((this.map[dx][dy+1] == Sprite.stone) || (this.map[dx][dy+1] == Sprite.diamond) || (this.map[dx][dy+1] == Sprite.wall) || (this.isGhost(dx,dy+1)))
+					{
 						this.soundTable[Sound.stone] = true;
+					}
 
 					if (this.isPlayer(dx, dy+1)) 
+					{
 						this.player.alive = false;
+					}
 					if (this.isGhost(dx, dy+1)) 
-						this.killGhost(dx, dy + 1);
+					{
+						this.killGhost(this.map[dx][dy + 1]);
+					}
 				}					
 			}
 		}
@@ -305,15 +348,19 @@ Level.prototype.move = function()
 	}
 
 	if (this.time > 0) 
+	{
 		this.time--;
-	if (this.time == 0)
+	}
+	if (this.time === 0)
+	{
 		this.player.alive = false;
-}
+	}
+};
 
 Level.prototype.isPlayer = function(x, y)
 {
 	return ((this.map[x][y] instanceof Player) || (this.map[x][y] == Sprite.player));
-}
+};
 
 Level.prototype.movePlayer = function(keys)
 {
@@ -394,11 +441,17 @@ Level.prototype.movePlayer = function(keys)
 			}
 
 			if ((this.map[z.x][z.y] == Sprite.exit) || (this.map[z.x][z.y] == Sprite.uvexit))
+			{
 				if (this.collected >= this.diamonds)
+				{
 					return true; // next level
+				}
+			}
 
 			if (this.isGhost(z.x, z.y))
+			{
 				this.player.alive = false;
+			}
 		}
 
 		// animate player
@@ -407,34 +460,44 @@ Level.prototype.movePlayer = function(keys)
 		{
 			case Direction.left:
 			case Direction.right:
-				if (this.player.step >= 6) this.player.step = 0;
+				if (this.player.step >= 6)
+				{
+					this.player.step = 0;
+				}
 				break;
 			case Direction.up:
 			case Direction.down:
-				if (this.player.step >= 2) this.player.step = 0;
+				if (this.player.step >= 2)
+				{
+					this.player.step = 0;
+				}
 				break;
-			case Direction.none:
-				if (this.player.step >= 30) this.player.step = 0;
+			default:
+				if (this.player.step >= 30)
+				{
+					this.player.step = 0;
+				}
 				break;
 		}
 	}
 	return false;
-}
+};
 
 Level.prototype.placePlayer = function(x, y)
 {
 	this.map[x][y] = this.map[this.player.position.x][this.player.position.y];
 	this.player.position.x = x;
 	this.player.position.y = y;
-}
+};
 
 Level.prototype.isGhost = function(x, y)
 {
 	return (this.map[x][y] instanceof Ghost);
-}
+};
 
 Level.prototype.moveGhost = function(ghost)
 {
+	var i, d;
 	if (ghost.alive)
 	{
 		var p = new Position(ghost.position.x, ghost.position.y);
@@ -462,19 +525,21 @@ Level.prototype.moveGhost = function(ghost)
 				if (ghost.direction == Direction.up)    { w[0].y--; w[1].x++; w[2].x--; w[3].y++; }
 				if (ghost.direction == Direction.down)  { w[0].y++; w[1].x--; w[2].x++; w[3].y--; }
 			}
-			for (var i = 0; i < 4; i++)
+			for (i = 0; i < 4; i++)
 			{
 				if (!p.equals(w[i]))
 				{
-					var d = new Position(w[i]);
+					d = new Position(w[i]);
 					if (this.isPlayer(d.x, d.y))
+					{
 						this.player.alive = false;
+					}
 					if (this.map[d.x][d.y] == Sprite.nothing)
 					{
-						if (d.x < p.x) ghost.direction = Direction.left;
-						if (d.x > p.x) ghost.direction = Direction.right;
-						if (d.y < p.y) ghost.direction = Direction.up;
-						if (d.y > p.y) ghost.direction = Direction.down;
+						if (d.x < p.x) { ghost.direction = Direction.left;  }
+						if (d.x > p.x) { ghost.direction = Direction.right; }
+						if (d.y < p.y) { ghost.direction = Direction.up;    }
+						if (d.y > p.y) { ghost.direction = Direction.down;  }
 						this.placeGhost(d.x, d.y, ghost);
 						this.map[p.x][p.y] = Sprite.nothing;
 						return;
@@ -487,55 +552,58 @@ Level.prototype.moveGhost = function(ghost)
 			if (ghost.direction == Direction.left)
 			{
 				w[0].x--; w[3].x++;
-				if (ghost.lastTurn == Direction.left) { w[1].y--; w[2].y++; } else { w[1].y++; w[2].y--; };
+				if (ghost.lastTurn == Direction.left) { w[1].y--; w[2].y++; } else { w[1].y++; w[2].y--; }
 			}
-			if (ghost.direction == Direction.right)
+			else if (ghost.direction == Direction.right)
 			{
 				w[0].x++; w[3].x--;
-				if (ghost.lastTurn == Direction.left) { w[1].y++; w[2].y--; } else { w[1].y--; w[2].y++; };
+				if (ghost.lastTurn == Direction.left) { w[1].y++; w[2].y--; } else { w[1].y--; w[2].y++; }
 			}
-			if (ghost.direction == Direction.up)
+			else if (ghost.direction == Direction.up)
 			{
 				w[0].y--; w[3].y++;
 				if (ghost.lastTurn == Direction.left) { w[1].x++; w[2].x--; } else { w[1].x--; w[2].x++; }
 			}
-			if (ghost.direction == Direction.down)
+			else if (ghost.direction == Direction.down)
 			{
 				w[0].y++; w[3].y--;
-				if (ghost.lastTurn == Direction.left) { w[1].x--; w[2].x++; } else { w[1].x++; w[2].x--; };
+				if (ghost.lastTurn == Direction.left) { w[1].x--; w[2].x++; } else { w[1].x++; w[2].x--; }
 			}
-			for (var i = 0; i < 4; i++)
+			for (i = 0; i < 4; i++)
 			{
 				if (!p.equals(w[i]))
 				{
-					var d = new Position(w[i]);
+					d = new Position(w[i]);
 					if (this.isPlayer(d.x, d.y)) 
+					{
 						this.player.alive = false;
+					}
 					if (this.map[d.x][d.y] == Sprite.nothing)
 					{
 						var lastDirection = ghost.direction;
-						if (d.x < p.x) ghost.direction = Direction.left;
-						if (d.x > p.x) ghost.direction = Direction.right;
-						if (d.y < p.y) ghost.direction = Direction.up;
-						if (d.y > p.y) ghost.direction = Direction.down;
-						switch (lastDirection)
+						if (d.x < p.x) { ghost.direction = Direction.left;  }
+						if (d.x > p.x) { ghost.direction = Direction.right; }
+						if (d.y < p.y) { ghost.direction = Direction.up;    }
+						if (d.y > p.y) { ghost.direction = Direction.down;  }
+						if (lastDirection == Direction.left)
 						{
-							case Direction.left:
-								if (ghost.direction == Direction.down)  ghost.lastTurn = Direction.left;
-								if (ghost.direction == Direction.up)    ghost.lastTurn = Direction.right;
-								break;
-							case Direction.right:
-								if (ghost.direction == Direction.down)  ghost.lastTurn = Direction.right;
-								if (ghost.direction == Direction.up)    ghost.lastTurn = Direction.left;
-								break;
-							case Direction.up:
-								if (ghost.direction == Direction.left)  ghost.lastTurn = Direction.left;
-								if (ghost.direction == Direction.right) ghost.lastTurn = Direction.right;
-								break;
-							case Direction.down:
-								if (ghost.direction == Direction.left)  ghost.lastTurn = Direction.right;
-								if (ghost.direction == Direction.right) ghost.lastTurn = Direction.left;
-								break;
+							if (ghost.direction == Direction.down)  { ghost.lastTurn = Direction.left;  }
+							if (ghost.direction == Direction.up)    { ghost.lastTurn = Direction.right; }
+						}
+						else if (lastDirection == Direction.right)
+						{
+							if (ghost.direction == Direction.down)  { ghost.lastTurn = Direction.right; }
+							if (ghost.direction == Direction.up)    { ghost.lastTurn = Direction.left;  }
+						}
+						else if (lastDirection == Direction.up)
+						{
+							if (ghost.direction == Direction.left)  { ghost.lastTurn = Direction.left;  }
+							if (ghost.direction == Direction.right) { ghost.lastTurn = Direction.right; }
+						}
+						else if (lastDirection == Direction.down)
+						{
+							if (ghost.direction == Direction.left)  { ghost.lastTurn = Direction.right; }
+							if (ghost.direction == Direction.right) { ghost.lastTurn = Direction.left;  }
 						}
 						this.placeGhost(d.x, d.y, ghost);
 						this.map[p.x][p.y] = Sprite.nothing;
@@ -545,18 +613,17 @@ Level.prototype.moveGhost = function(ghost)
 			}
 		}
 	}
-}
+};
 
 Level.prototype.placeGhost = function(x, y, ghost)
 {
 	this.map[x][y] = ghost;
 	ghost.position.x = x;
 	ghost.position.y = y;
-}
+};
 
-Level.prototype.killGhost = function(x, y)
+Level.prototype.killGhost = function(ghost)
 {
-	var ghost = this.map[x][y];
 	if (ghost.alive)
 	{
 		var p = new Position(ghost.position.x, ghost.position.y);
@@ -584,45 +651,7 @@ Level.prototype.killGhost = function(x, y)
 		}
 		ghost.alive = false;
 	}
-}	
-
-function Player(position)
-{
-	this.position = position;
-	this.alive = true;
-	this.direction = Direction.none;
-	this.stone = [ false, false ];
-	this.step = 0;
-}
-
-Player.prototype.getImageIndex = function()
-{
-	if (!this.alive) return 31;
-	var array;
-	if ((this.direction == Direction.left) && (this.step < 6))
-		return [ 16, 17, 18, 19, 18, 17 ][this.step];
-	else if ((this.direction == Direction.right) && (this.step < 6))
-		return [ 20, 21, 22, 23, 22, 21 ][this.step];
-	else if ((this.direction == Direction.up) && (this.step < 2))
-		return [ 24, 25 ][this.step];	
-	else if ((this.direction == Direction.down) && (this.step < 2))
-		return [ 26, 27 ][this.step];
-	return [ 15, 15, 15, 15, 15, 15, 15, 15, 28, 28, 15, 15, 28, 28, 15, 15, 15, 15, 15, 15, 29, 29, 30, 30, 29, 29, 15, 15, 15, 15 ][this.step];
-}
-
-function Ghost(position, type)
-{
-	this.position = position;
-	this.type = type;
-	this.alive = true;
-	this.direction = Direction.none;
-	this.lastTurn = Direction.none;
-}
-
-Ghost.prototype.getImageIndex = function()
-{
-	return [ 4, 4, 5, 6, 3 ][this.direction];
-}
+};	
 
 function Display(canvas, imageData)
 {
@@ -672,7 +701,7 @@ Display.prototype.paint = function(game, level, blink)
 			}
 		}
 	}
-}
+};
 
 Display.prototype.drawText = function(context, x, y, text)
 {
@@ -683,16 +712,17 @@ Display.prototype.drawText = function(context, x, y, text)
 		this.context.drawImage(this.imageData[1], 0, index * 8, 8, 8, x, y, 8, 8);
 		x += 8;
 	}	
-}
-
+};
 
 Display.prototype.formatNumber = function(value, digits)
 {
 	var text = value.toString();
 	while (text.length < digits)
+	{
 		text = "0" + text;
+	}
 	return text; 
-}
+};
 
 Display.prototype.getSpriteIndex = function(value, blink)
 {
@@ -709,10 +739,10 @@ Display.prototype.getSpriteIndex = function(value, blink)
 		case Sprite.buffer:    return 0;
 		case Sprite.marker:    return 0;
 		case Sprite.uvstone:   return 0;
-		case Sprite.player:    return 15; 
+		case Sprite.player:    return 15;
+		default:               return value.getImageIndex();
 	}
-	return value.getImageIndex();
-}
+};
 
 function Loader()
 {
@@ -725,19 +755,21 @@ Loader.prototype.loadImageData = function(data)
 {
 	this.count += data.length;
 	this.imageData = data;
-}
+};
 
 Loader.prototype.loadAudioData = function(data)
 {
 	this.audioData = data;
-}
+};
 
 Loader.prototype.start = function(callback)
 {
-	for (var i = 0; i < this.audioData.length; i++)
+	var i;
+	
+	for (i = 0; i < this.audioData.length; i++)
 	{
 		var audio = document.createElement('audio');
-		if ((audio != null) && (audio.canPlayType("audio/wav")))
+		if ((audio !== null) && (audio.canPlayType("audio/wav")))
 		{
 			audio.src = "data:audio/wav;base64," + this.audioData[i];
 			audio.preload = "auto";
@@ -746,24 +778,25 @@ Loader.prototype.start = function(callback)
 		this.audioData[i] = audio;
 	}
 
-	var count = this.count;
 	var index = 0;
-	for (var i = 0; i < this.imageData.length; i++)
+	var count = this.count;
+	var onload = function()
+	{
+		index++;
+		if (index == count)
+		{
+			callback();
+		}
+	};
+
+	for (i = 0; i < this.imageData.length; i++)
 	{
 		var image = new Image();
-		image.onload = function()
-		{
-			index++;
-			if (index == count)
-				callback();
-		}
+		image.onload = onload;
 		image.src = "data:image/png;base64," + this.imageData[i];
 		this.imageData[i] = image;
 	}	
-}
-
-
-
+};
 
 function Input(canvas, game)
 {
@@ -798,7 +831,7 @@ Input.prototype.keyDown = function(e)
 	else if (e.keyCode == 27) { e.preventDefault(); this.game.addKey(Key.reset); } // esc
 	else if (e.keyCode == 32) { e.preventDefault(); this.game.nextLevel();       } // space
 	else if (!this.game.isAlive()) { e.preventDefault(); this.game.addKey(Key.reset); }
-}
+};
 
 Input.prototype.keyUp = function(e)
 {
@@ -806,26 +839,26 @@ Input.prototype.keyUp = function(e)
 	else if (e.keyCode == 39) { this.game.removeKey(Key.right); }
 	else if (e.keyCode == 38) { this.game.removeKey(Key.up);    }
 	else if (e.keyCode == 40) { this.game.removeKey(Key.down);  }
-}
+};
 
 Input.prototype.mouseDown = function(e) 
 {
 	e.preventDefault(); 
 	this.canvas.focus();
-	this.pressDown(e.offsetX, e.offsetY) 
-}
+	this.pressDown(e.offsetX, e.offsetY);
+};
 
 Input.prototype.mouseMove = function(e) 
 { 
 	e.preventDefault();
 	this.pressMove(e.offsetX, e.offsetY); 
-}
+};
 
 Input.prototype.mouseUp = function(e)
 { 
 	e.preventDefault();
 	this.pressUp(); 
-}
+};
 
 Input.prototype.touchStart = function(e)
 {
@@ -845,7 +878,7 @@ Input.prototype.touchStart = function(e)
 			this.pressDown(e.touches[i].pageX, e.touches[i].pageY);
 		}
 	}
-}
+};
 
 Input.prototype.touchMove = function(e)
 {
@@ -854,48 +887,64 @@ Input.prototype.touchMove = function(e)
 	{
 		this.pressMove(e.touches[i].pageX, e.touches[i].pageY);
 	}
-}
+};
 
 Input.prototype.touchEnd = function(e)
 {
 	e.preventDefault();
 	this.pressUp();
-}
+};
 
 Input.prototype.pressDown = function(x, y)
 {
 	if (!this.game.isAlive())
+	{
 		this.game.addKey(Key.reset);
+	}
 	else
-		this.touchPosition = new Position(x, y);	
-}
+	{
+		this.touchPosition = new Position(x, y);
+	}
+};
 
 Input.prototype.pressMove = function(x, y)
 {
-	if (this.touchPosition != null)
+	if (this.touchPosition !== null)
 	{
 		var direction = null;
 		if ((this.touchPosition.x - x) > 20)
+		{
 			direction = Key.left;
+		}
 		else if ((this.touchPosition.x - x) < -20)
+		{
 			direction = Key.right;
+		}
 		else if ((this.touchPosition.y - y) > 20)
+		{
 			direction = Key.up;
+		}
 		else if ((this.touchPosition.y - y) < -20)
+		{
 			direction = Key.down;
-		if (direction != null)
+		}
+		if (direction !== null)
 		{
 			this.touchPosition = new Position(x, y);			
 			for (var i = Key.left; i <= Key.down; i++)
 			{
 				if (direction == i)
+				{
 					this.game.addKey(i);
-				else 
+				}
+				else
+				{ 
 					this.game.removeKey(i);
+				}
 			}
 		}
 	}
-}
+};
 
 Input.prototype.pressUp = function()
 {
@@ -904,7 +953,7 @@ Input.prototype.pressUp = function()
 	this.game.removeKey(Key.right);
 	this.game.removeKey(Key.up);
 	this.game.removeKey(Key.down);
-}
+};
 
 Function.prototype.delegate = function(obj)
 {
@@ -912,109 +961,148 @@ Function.prototype.delegate = function(obj)
 	return function()
 	{
 		return fn.apply(obj, arguments);
-	}
-}
+	};
+};
 
-function Position()
+function Digger(element)
 {
-	if (Position.arguments.length == 1) // copy constructor
-	{
-		this.x = Position.arguments[0].x;	
-		this.y = Position.arguments[0].y;	
-	}
-	if (Position.arguments.length == 2) // (x, y)
-	{
-		this.x = Position.arguments[0];
-		this.y = Position.arguments[1];
-	}
+	this.canvas = element;
+	this.canvas.focus();
+	this.loader = new Loader();
+	this.loader.loadAudioData(this.soundData);
+	this.loader.loadImageData(this.imageData);
+	this.loader.start(this.loaderCallback.delegate(this));
 }
 
-Position.prototype.equals = function(position)
+Digger.prototype.loaderCallback = function()
 {
-	return (this.x == position.x) && (this.y == position.y);
-}
+	this.display = new Display(this.canvas, this.imageData);
+	this.input = new Input(this.canvas, this);
+	this.blink = 0;
+	this.restart();
+	this.intervalHandler = this.interval.delegate(this);
+	window.setInterval(this.intervalHandler, 50);
+};
 
-function Base64Reader(data)
-{ 
-	this.alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-	this.data = data;
-	this.position = 0;
-	this.bits = 0;
-	this.bitsLength = 0;
-}
-
-Base64Reader.prototype.readByte = function()
+Digger.prototype.addKey = function(key)
 {
-	if (this.bitsLength == 0)
+	if (key < 4)
 	{
-		var tailBits = 0;
-		while (this.position < this.data.length && this.bitsLength < 24)
+		this.keys[key] = true;
+	}
+	else if (key == Key.reset)
+	{
+		this.lives--;
+		if (this.lives >= 0)
 		{
-			var ch = this.data.charAt(this.position++);
-			var index = this.alphabet.indexOf(ch);
-			if (index < 64)
-			{
-				this.bits = (this.bits << 6) | index;
-			}
-			else 
-			{
-				this.bits <<= 6;
-				tailBits += 6;
-			}
-			this.bitsLength += 6;
+			this.loadLevel();
 		}
-		if ((this.position >= this.data.length) && (this.bitsLength == 0)) return -1;
-		tailBits = (tailBits == 6) ? 8 : (tailBits == 12) ? 16 : tailBits;
-		this.bits = this.bits >> tailBits;
-		this.bitsLength -= tailBits;
+		else
+		{
+			this.restart();
+		}
 	}
-	this.bitsLength -= 8;
-	return (this.bits >> this.bitsLength) & 0xff;
 };
 
-var Direction = 
-{ 
-	none:0, 
-	left:1, 
-	right:2, 
-	up:3, 
-	down:4 
+Digger.prototype.removeKey = function(key)
+{
+	if (key < 4)
+	{
+		this.keysRelease[key] = true;
+	}
 };
 
-var Key = 
-{ 
-	left:0, 
-	right:1, 
-	up: 2, 
-	down: 3, 
-	reset:4 
+Digger.prototype.restart = function()
+{
+	this.lives = 20;
+	this.score = 0;
+	this.room = 0;
+	this.loadLevel();
 };
 
-var Sound = 
-{ 
-	diamond:0, 
-	stone: 1, 
-	step:2 
+Digger.prototype.loadLevel = function()
+{
+	this.level = new Level(this.levelData[this.room]);
+	this.keys = [ false, false, false, false ];
+	this.keysRelease = [ false, false, false, false ];
+	this.tick = 0;
+	this.paint();
 };
 
-var Sprite = 
-{ 
-	nothing:0, 
-	stone:1, 
-	ground:2, 
-	ghost180:3, 
-	uvexit:4, 
-	diamond:5, 
-	wall:6, 
-	ghost90L:7, 
-	marker:8, 
-	uvstone:9, 
-	player:10, 
-	ghost90LR: 11, 
-	exit:12, 
-	buffer:13, 
-	changer:14, 
-	ghost90R:15 
+Digger.prototype.nextLevel = function()
+{
+	if (this.room < (this.levelData.length - 1))
+	{
+		this.room++;
+		this.loadLevel();
+	}
+};
+
+Digger.prototype.isAlive = function()
+{
+	return (this.level === null) || (this.level.player.alive);
+};
+
+Digger.prototype.interval = function()
+{
+	var i;
+	this.tick++;
+	this.blink++;
+	if (this.blink == 6)
+	{
+		this.blink = 0;
+	}
+	if ((this.tick % 2) === 0)
+	{
+		this.level.soundTable = [];
+		for (i = 0; i < this.soundData.length; i++)
+		{
+			this.level.soundTable[i] = false;
+		}
+		
+		// keyboard
+		for (i = 0; i < 4; i++)
+		{
+			if (this.keysRelease[i])
+			{
+				this.keys[i] = false;
+				this.keysRelease[i] = false;
+			}
+		}
+
+		this.level.update();
+		if (this.level.movePlayer(this.keys))
+		{
+			this.nextLevel();
+		}
+		else
+		{
+			this.level.move();
+		
+			// play sound
+			for (i = 0; i < this.level.soundTable.length; i++)
+			{
+				if (this.level.soundTable[i] && this.soundData[i])
+				{
+					if (!!this.soundData[i].currentTime)
+					{
+						this.soundData[i].pause();
+						this.soundData[i].currentTime = 0;
+					}
+					this.soundData[i].play();
+					break;
+				}
+			}
+		}
+	}
+
+	this.paint();
+};
+
+Digger.prototype.paint = function()
+{
+	var blink = ((this.blink + 4) % 6);
+	this.display.paint(this, this.level, blink);
 };
 
 Digger.prototype.levelData = [
