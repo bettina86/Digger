@@ -44,7 +44,7 @@ var Sound =
 	step:2 
 };
 
-function Player(position)
+Player = function(position)
 {
 	this.position = position;
 	this.alive = true;
@@ -78,7 +78,7 @@ Player.prototype.getImageIndex = function()
 	return 31;
 };
 
-function Ghost(position, type)
+Ghost = function(position, type)
 {
 	this.position = position;
 	this.type = type;
@@ -92,7 +92,7 @@ Ghost.prototype.getImageIndex = function()
 	return [ 4, 4, 5, 6, 3 ][this.direction];
 };
 
-function Position()
+Position = function()
 {
 	if (arguments.length == 1) // copy constructor
 	{
@@ -111,7 +111,7 @@ Position.prototype.equals = function(position)
 	return (this.x == position.x) && (this.y == position.y);
 };
 
-function Base64Reader(data)
+Base64Reader = function(data)
 { 
 	this.alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 	this.data = data;
@@ -152,7 +152,7 @@ Base64Reader.prototype.readByte = function()
 	return (this.bits >> this.bitsLength) & 0xff;
 };
 
-function Level(data)
+Level = function(data)
 {
 	var i, x, y;
 	
@@ -653,7 +653,7 @@ Level.prototype.killGhost = function(ghost)
 	}
 };	
 
-function Display(canvas, imageData)
+Display = function(canvas, imageData)
 {
 	this.context = canvas.getContext("2d");
 	this.imageData = imageData;
@@ -744,7 +744,7 @@ Display.prototype.getSpriteIndex = function(value, blink)
 	}
 };
 
-function Loader()
+Loader = function()
 {
 	this.count = 0;
 	this.imageData = null;
@@ -798,18 +798,18 @@ Loader.prototype.start = function(callback)
 	}	
 };
 
-function Input(canvas, game)
+Input = function(canvas, game)
 {
 	this.canvas = canvas;
 	this.game = game;
 	this.touchPosition = null;
-	this.mouseDownHandler = this.mouseDown.delegate(this);
-	this.touchStartHandler = this.touchStart.delegate(this);
-	this.touchEndHandler = this.touchEnd.delegate(this);
-	this.touchMoveHandler = this.touchMove.delegate(this);
-	this.keyDownHandler = this.keyDown.delegate(this);
-	this.keyPressHandler = this.keyPress.delegate(this);
-	this.keyUpHandler = this.keyUp.delegate(this);
+	this.mouseDownHandler = this.mouseDown.bind(this);
+	this.touchStartHandler = this.touchStart.bind(this);
+	this.touchEndHandler = this.touchEnd.bind(this);
+	this.touchMoveHandler = this.touchMove.bind(this);
+	this.keyDownHandler = this.keyDown.bind(this);
+	this.keyPressHandler = this.keyPress.bind(this);
+	this.keyUpHandler = this.keyUp.bind(this);
 	this.canvas.addEventListener("touchstart", this.touchStartHandler, false);
 	this.canvas.addEventListener("touchmove", this.touchMoveHandler, false);
 	this.canvas.addEventListener("touchend", this.touchEndHandler, false);
@@ -942,7 +942,7 @@ Input.prototype.stopEvent = function(e)
 	e.preventDefault();
 	e.stopPropagation();
 };
-Function.prototype.delegate = function(obj)
+Function.prototype.bind = function(obj)
 {
 	var fn = this;
 	return function()
@@ -951,14 +951,14 @@ Function.prototype.delegate = function(obj)
 	};
 };
 
-function Digger(element)
+Digger = function(element)
 {
 	this.canvas = element;
 	this.canvas.focus();
 	this.loader = new Loader();
 	this.loader.loadAudioData(this.soundData);
 	this.loader.loadImageData(this.imageData);
-	this.loader.start(this.loaderCallback.delegate(this));
+	this.loader.start(this.loaderCallback.bind(this));
 }
 
 Digger.prototype.loaderCallback = function()
@@ -967,7 +967,7 @@ Digger.prototype.loaderCallback = function()
 	this.input = new Input(this.canvas, this);
 	this.blink = 0;
 	this.restart();
-	this.intervalHandler = this.interval.delegate(this);
+	this.intervalHandler = this.interval.bind(this);
 	window.setInterval(this.intervalHandler, 50);
 };
 
