@@ -44,32 +44,32 @@ var Sound =
 	step:2 
 };
 
-Player = function(position)
+var Player = function(position)
 {
 	this.position = position;
 	this.alive = true;
 	this.direction = Direction.none;
 	this.stone = [ false, false ];
 	this.step = 0;
-}
+};
 
 Player.prototype.getImageIndex = function()
 {
 	if (this.alive)
 	{
-		if ((this.direction == Direction.left) && (this.step < 6))
+		if ((this.direction === Direction.left) && (this.step < 6))
 		{ 
 			return [ 16, 17, 18, 19, 18, 17 ][this.step]; 
 		}
-		else if ((this.direction == Direction.right) && (this.step < 6))
+		else if ((this.direction === Direction.right) && (this.step < 6))
 		{
 			return [ 20, 21, 22, 23, 22, 21 ][this.step];
 		}
-		else if ((this.direction == Direction.up) && (this.step < 2))
+		else if ((this.direction === Direction.up) && (this.step < 2))
 		{
 			return [ 24, 25 ][this.step];
 		}
-		else if ((this.direction == Direction.down) && (this.step < 2))
+		else if ((this.direction === Direction.down) && (this.step < 2))
 		{
 			return [ 26, 27 ][this.step];
 		}
@@ -78,47 +78,47 @@ Player.prototype.getImageIndex = function()
 	return 31;
 };
 
-Ghost = function(position, type)
+var Ghost = function(position, type)
 {
 	this.position = position;
 	this.type = type;
 	this.alive = true;
 	this.direction = Direction.none;
 	this.lastTurn = Direction.none;
-}
+};
 
 Ghost.prototype.getImageIndex = function()
 {
 	return [ 4, 4, 5, 6, 3 ][this.direction];
 };
 
-Position = function()
+var Position = function()
 {
-	if (arguments.length == 1) // copy constructor
+	if (arguments.length === 1) // copy constructor
 	{
 		this.x = arguments[0].x;	
 		this.y = arguments[0].y;	
 	}
-	if (arguments.length == 2) // (x, y)
+	if (arguments.length === 2) // (x, y)
 	{
 		this.x = arguments[0];
 		this.y = arguments[1];
 	}
-}
+};
 
 Position.prototype.equals = function(position)
 {
 	return (this.x == position.x) && (this.y == position.y);
 };
 
-Base64Reader = function(data)
+var Base64Reader = function(data)
 { 
 	this.alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 	this.data = data;
 	this.position = 0;
 	this.bits = 0;
 	this.bitsLength = 0;
-}
+};
 
 Base64Reader.prototype.readByte = function()
 {
@@ -144,7 +144,7 @@ Base64Reader.prototype.readByte = function()
 		{
 			return -1;
 		}
-		tailBits = (tailBits == 6) ? 8 : (tailBits == 12) ? 16 : tailBits;
+		tailBits = (tailBits === 6) ? 8 : (tailBits === 12) ? 16 : tailBits;
 		this.bits = this.bits >> tailBits;
 		this.bitsLength -= tailBits;
 	}
@@ -152,7 +152,7 @@ Base64Reader.prototype.readByte = function()
 	return (this.bits >> this.bitsLength) & 0xff;
 };
 
-Level = function(data)
+var Level = function(data)
 {
 	var i, x, y;
 	
@@ -191,7 +191,7 @@ Level = function(data)
 	{
 		for (x = 0; x < 20; x++)
 		{
-			if ((this.map[x][y] == Sprite.ghost90L) || (this.map[x][y] == Sprite.ghost90R) || (this.map[x][y] == Sprite.ghost90LR) || (this.map[x][y] == Sprite.ghost180))
+			if ((this.map[x][y] === Sprite.ghost90L) || (this.map[x][y] === Sprite.ghost90R) || (this.map[x][y] === Sprite.ghost90LR) || (this.map[x][y] === Sprite.ghost180))
 			{
 				var ghost = new Ghost(new Position(x, y), this.map[x][y]);
 				var info = ghostData[index >> 1];
@@ -213,8 +213,9 @@ Level = function(data)
 		}
 	}
 	this.collected = 0;
-	this.time = 5000;	
-}
+	this.time = 5000;
+	this.score = 0;	
+};
 
 Level.prototype.update = function()
 {
@@ -223,7 +224,7 @@ Level.prototype.update = function()
 	{
 		for (var x = 19; x >= 0; x--)
 		{
-			if (this.map[x][y] == Sprite.buffer)
+			if (this.map[x][y] === Sprite.buffer)
 			{
 				this.map[x][y] = Sprite.nothing;
 			}
@@ -240,30 +241,30 @@ Level.prototype.move = function()
 	{
 		for (x = 19; x >= 0; x--)
 		{
-			if ((this.map[x][y] == Sprite.stone) || (this.map[x][y] == Sprite.diamond) || (this.map[x][y] == Sprite.uvstone))
+			if ((this.map[x][y] === Sprite.stone) || (this.map[x][y] === Sprite.diamond) || (this.map[x][y] === Sprite.uvstone))
 			{
 				dx = x;
 				dy = y;
-				if (this.map[x][y+1] == Sprite.nothing)
+				if (this.map[x][y+1] === Sprite.nothing)
 				{
 					dy = y + 1;
 				}
 				else
 				{
-					if ((this.map[x][y+1] == Sprite.stone) || (this.map[x][y+1] == Sprite.diamond))
+					if ((this.map[x][y+1] === Sprite.stone) || (this.map[x][y+1] === Sprite.diamond))
 					{
-						if ((this.map[x-1][y+1] == Sprite.nothing) && (this.map[x-1][y] == Sprite.nothing))
+						if ((this.map[x-1][y+1] === Sprite.nothing) && (this.map[x-1][y] === Sprite.nothing))
 						{
 							dx = x - 1;
 							dy = y + 1;
 						}
-						else if ((this.map[x+1][y+1] == Sprite.nothing) && (this.map[x+1][y] == Sprite.nothing))
+						else if ((this.map[x+1][y+1] === Sprite.nothing) && (this.map[x+1][y] === Sprite.nothing))
 						{
 							dx = x + 1;
 							dy = y + 1;
 						}
 					}
-					if ((this.map[x][y+1] == Sprite.changer) && ((this.map[x][y] == Sprite.stone) || (this.map[x][y] == Sprite.uvstone)) && (this.map[x][y+2] == Sprite.nothing))
+					if ((this.map[x][y+1] === Sprite.changer) && ((this.map[x][y] === Sprite.stone) || (this.map[x][y] === Sprite.uvstone)) && (this.map[x][y+2] === Sprite.nothing))
 					{
 						dy = y + 2;
 					}
@@ -280,51 +281,51 @@ Level.prototype.move = function()
 	{
 		for (x = 19; x >= 0; x--)
 		{
-			if ((this.map[x][y] == Sprite.stone) || (this.map[x][y] == Sprite.diamond) || (this.map[x][y] == Sprite.uvstone))
+			if ((this.map[x][y] === Sprite.stone) || (this.map[x][y] === Sprite.diamond) || (this.map[x][y] === Sprite.uvstone))
 			{
 				dx = x;
 				dy = y;
-				if (this.map[x][y+1] == Sprite.marker)
+				if (this.map[x][y+1] === Sprite.marker)
 				{
 					dy = y + 1;
 				}
 				else
 				{
-					if ((this.map[x][y+1] == Sprite.stone) || (this.map[x][y+1] == Sprite.diamond) || (this.map[x][y+1] == Sprite.nothing))
+					if ((this.map[x][y+1] === Sprite.stone) || (this.map[x][y+1] === Sprite.diamond) || (this.map[x][y+1] === Sprite.nothing))
 					{
-						if ((this.map[x-1][y+1] == Sprite.marker) && ((this.map[x-1][y] == Sprite.nothing) || (this.map[x-1][y] == Sprite.marker)))
+						if ((this.map[x-1][y+1] === Sprite.marker) && ((this.map[x-1][y] === Sprite.nothing) || (this.map[x-1][y] === Sprite.marker)))
 						{
 							dx = x - 1;
 							dy = y + 1;
 						}
-						else if ((this.map[x+1][y+1] == Sprite.marker) && ((this.map[x+1][y] == Sprite.nothing) || (this.map[x+1][y] == Sprite.marker)))
+						else if ((this.map[x+1][y+1] === Sprite.marker) && ((this.map[x+1][y] === Sprite.nothing) || (this.map[x+1][y] === Sprite.marker)))
 						{
 							dx = x + 1;
 							dy = y + 1;
 						}
 					}
-					if ((this.map[x][y+1] == Sprite.changer) && ((this.map[x][y] == Sprite.stone) || (this.map[x][y] == Sprite.uvstone)) && (this.map[x][y+2] == Sprite.marker))
+					if ((this.map[x][y+1] === Sprite.changer) && ((this.map[x][y] === Sprite.stone) || (this.map[x][y] === Sprite.uvstone)) && (this.map[x][y+2] === Sprite.marker))
 					{
 						dy = y + 2;
 					}
 				}
 				if ((dx != x) || (dy != y))
 				{
-					if ((dy - y) == 2)
+					if ((dy - y) === 2)
 					{
 						this.map[dx][dy] = Sprite.diamond;
 					}
 					else
 					{
 						this.map[dx][dy] = this.map[x][y];
-						if (this.map[dx][dy] == Sprite.uvstone)
+						if (this.map[dx][dy] === Sprite.uvstone)
 						{
 							this.map[dx][dy] = Sprite.stone;
 						}
 					}
 					this.map[x][y] = Sprite.nothing;
 
-					if ((this.map[dx][dy+1] == Sprite.stone) || (this.map[dx][dy+1] == Sprite.diamond) || (this.map[dx][dy+1] == Sprite.wall) || (this.isGhost(dx,dy+1)))
+					if ((this.map[dx][dy+1] === Sprite.stone) || (this.map[dx][dy+1] === Sprite.diamond) || (this.map[dx][dy+1] === Sprite.wall) || (this.isGhost(dx,dy+1)))
 					{
 						this.soundTable[Sound.stone] = true;
 					}
@@ -359,7 +360,7 @@ Level.prototype.move = function()
 
 Level.prototype.isPlayer = function(x, y)
 {
-	return ((this.map[x][y] instanceof Player) || (this.map[x][y] == Sprite.player));
+	return ((this.map[x][y] instanceof Player) || (this.map[x][y] === Sprite.player));
 };
 
 Level.prototype.movePlayer = function(keys)
@@ -400,19 +401,19 @@ Level.prototype.movePlayer = function(keys)
 		}
 		if (!d.equals(z))
 		{
-			if (this.map[z.x][z.y] == Sprite.nothing)
+			if (this.map[z.x][z.y] === Sprite.nothing)
 			{
 				this.placePlayer(d.x, d.y);
 			}
-			if (this.map[z.x][z.y] == Sprite.diamond)
+			if (this.map[z.x][z.y] === Sprite.diamond)
 			{
 				this.collected += 1;
 				this.score += 3;
 				this.soundTable[Sound.diamond] = true;
 			}
-			if (this.map[z.x][z.y] == Sprite.stone)
+			if (this.map[z.x][z.y] === Sprite.stone)
 			{
-				if ((z.x > d.x) && (this.map[z.x+1][z.y] == Sprite.nothing))
+				if ((z.x > d.x) && (this.map[z.x+1][z.y] === Sprite.nothing))
 				{
 					if (this.player.stone[1])
 					{
@@ -422,7 +423,7 @@ Level.prototype.movePlayer = function(keys)
 					this.player.stone[1] = !this.player.stone[1];
 				}
 
-				if ((z.x < d.x) && (this.map[z.x-1][z.y] == Sprite.nothing))
+				if ((z.x < d.x) && (this.map[z.x-1][z.y] === Sprite.nothing))
 				{
 					if (this.player.stone[0])
 					{
@@ -433,14 +434,14 @@ Level.prototype.movePlayer = function(keys)
 				}
 			}
 
-			if ((this.map[z.x][z.y] == Sprite.nothing) || (this.map[z.x][z.y] == Sprite.ground) || (this.map[z.x][z.y] == Sprite.diamond))
+			if ((this.map[z.x][z.y] === Sprite.nothing) || (this.map[z.x][z.y] === Sprite.ground) || (this.map[z.x][z.y] === Sprite.diamond))
 			{
 				this.placePlayer(z.x, z.y);
 				this.map[d.x][d.y] = Sprite.buffer;
 				this.soundTable[Sound.step] = true;
 			}
 
-			if ((this.map[z.x][z.y] == Sprite.exit) || (this.map[z.x][z.y] == Sprite.uvexit))
+			if ((this.map[z.x][z.y] === Sprite.exit) || (this.map[z.x][z.y] === Sprite.uvexit))
 			{
 				if (this.collected >= this.diamonds)
 				{
@@ -502,28 +503,28 @@ Level.prototype.moveGhost = function(ghost)
 	{
 		var p = new Position(ghost.position.x, ghost.position.y);
 		var w = [ new Position(p), new Position(p), new Position(p), new Position(p) ];
-		if ((ghost.type == Sprite.ghost180) || (ghost.type == Sprite.ghost90L) || (ghost.type == Sprite.ghost90R))
+		if ((ghost.type === Sprite.ghost180) || (ghost.type === Sprite.ghost90L) || (ghost.type === Sprite.ghost90R))
 		{
-			if (ghost.type == Sprite.ghost180)
+			if (ghost.type === Sprite.ghost180)
 			{
-				if (ghost.direction == Direction.left)  { w[0].x--; w[1].x++; }
-				if (ghost.direction == Direction.right) { w[0].x++; w[1].x--; }
-				if (ghost.direction == Direction.up)    { w[0].y--; w[1].y++; }
-				if (ghost.direction == Direction.down)  { w[0].y++; w[1].y--; }
+				if (ghost.direction === Direction.left)  { w[0].x--; w[1].x++; }
+				if (ghost.direction === Direction.right) { w[0].x++; w[1].x--; }
+				if (ghost.direction === Direction.up)    { w[0].y--; w[1].y++; }
+				if (ghost.direction === Direction.down)  { w[0].y++; w[1].y--; }
 			}
-			else if (ghost.type == Sprite.ghost90L)
+			else if (ghost.type === Sprite.ghost90L)
 			{
-				if (ghost.direction == Direction.left)  { w[0].x--; w[1].y++; w[2].y--; w[3].x++; }
-				if (ghost.direction == Direction.right) { w[0].x++; w[1].y--; w[2].y++; w[3].x--; }
-				if (ghost.direction == Direction.up)    { w[0].y--; w[1].x--; w[2].x++; w[3].y++; }
-				if (ghost.direction == Direction.down)  { w[0].y++; w[1].x++; w[2].x--; w[3].y--; }
+				if (ghost.direction === Direction.left)  { w[0].x--; w[1].y++; w[2].y--; w[3].x++; }
+				if (ghost.direction === Direction.right) { w[0].x++; w[1].y--; w[2].y++; w[3].x--; }
+				if (ghost.direction === Direction.up)    { w[0].y--; w[1].x--; w[2].x++; w[3].y++; }
+				if (ghost.direction === Direction.down)  { w[0].y++; w[1].x++; w[2].x--; w[3].y--; }
 			}
-			else if (ghost.type == Sprite.ghost90R)
+			else if (ghost.type === Sprite.ghost90R)
 			{
-				if (ghost.direction == Direction.left)  { w[0].x--; w[1].y--; w[2].y++; w[3].x++; }
-				if (ghost.direction == Direction.right) { w[0].x++; w[1].y++; w[2].y--; w[3].x--; }
-				if (ghost.direction == Direction.up)    { w[0].y--; w[1].x++; w[2].x--; w[3].y++; }
-				if (ghost.direction == Direction.down)  { w[0].y++; w[1].x--; w[2].x++; w[3].y--; }
+				if (ghost.direction === Direction.left)  { w[0].x--; w[1].y--; w[2].y++; w[3].x++; }
+				if (ghost.direction === Direction.right) { w[0].x++; w[1].y++; w[2].y--; w[3].x--; }
+				if (ghost.direction === Direction.up)    { w[0].y--; w[1].x++; w[2].x--; w[3].y++; }
+				if (ghost.direction === Direction.down)  { w[0].y++; w[1].x--; w[2].x++; w[3].y--; }
 			}
 			for (i = 0; i < 4; i++)
 			{
@@ -534,7 +535,7 @@ Level.prototype.moveGhost = function(ghost)
 					{
 						this.player.alive = false;
 					}
-					if (this.map[d.x][d.y] == Sprite.nothing)
+					if (this.map[d.x][d.y] === Sprite.nothing)
 					{
 						if (d.x < p.x) { ghost.direction = Direction.left;  }
 						if (d.x > p.x) { ghost.direction = Direction.right; }
@@ -547,27 +548,27 @@ Level.prototype.moveGhost = function(ghost)
 				}
 			}
 		}
-		else if (ghost.type == Sprite.ghost90LR)
+		else if (ghost.type === Sprite.ghost90LR)
 		{
-			if (ghost.direction == Direction.left)
+			if (ghost.direction === Direction.left)
 			{
 				w[0].x--; w[3].x++;
-				if (ghost.lastTurn == Direction.left) { w[1].y--; w[2].y++; } else { w[1].y++; w[2].y--; }
+				if (ghost.lastTurn === Direction.left) { w[1].y--; w[2].y++; } else { w[1].y++; w[2].y--; }
 			}
-			else if (ghost.direction == Direction.right)
+			else if (ghost.direction === Direction.right)
 			{
 				w[0].x++; w[3].x--;
-				if (ghost.lastTurn == Direction.left) { w[1].y++; w[2].y--; } else { w[1].y--; w[2].y++; }
+				if (ghost.lastTurn === Direction.left) { w[1].y++; w[2].y--; } else { w[1].y--; w[2].y++; }
 			}
-			else if (ghost.direction == Direction.up)
+			else if (ghost.direction === Direction.up)
 			{
 				w[0].y--; w[3].y++;
-				if (ghost.lastTurn == Direction.left) { w[1].x++; w[2].x--; } else { w[1].x--; w[2].x++; }
+				if (ghost.lastTurn === Direction.left) { w[1].x++; w[2].x--; } else { w[1].x--; w[2].x++; }
 			}
-			else if (ghost.direction == Direction.down)
+			else if (ghost.direction === Direction.down)
 			{
 				w[0].y++; w[3].y--;
-				if (ghost.lastTurn == Direction.left) { w[1].x--; w[2].x++; } else { w[1].x++; w[2].x--; }
+				if (ghost.lastTurn === Direction.left) { w[1].x--; w[2].x++; } else { w[1].x++; w[2].x--; }
 			}
 			for (i = 0; i < 4; i++)
 			{
@@ -578,32 +579,32 @@ Level.prototype.moveGhost = function(ghost)
 					{
 						this.player.alive = false;
 					}
-					if (this.map[d.x][d.y] == Sprite.nothing)
+					if (this.map[d.x][d.y] === Sprite.nothing)
 					{
 						var lastDirection = ghost.direction;
 						if (d.x < p.x) { ghost.direction = Direction.left;  }
 						if (d.x > p.x) { ghost.direction = Direction.right; }
 						if (d.y < p.y) { ghost.direction = Direction.up;    }
 						if (d.y > p.y) { ghost.direction = Direction.down;  }
-						if (lastDirection == Direction.left)
+						if (lastDirection === Direction.left)
 						{
-							if (ghost.direction == Direction.down)  { ghost.lastTurn = Direction.left;  }
-							if (ghost.direction == Direction.up)    { ghost.lastTurn = Direction.right; }
+							if (ghost.direction === Direction.down)  { ghost.lastTurn = Direction.left;  }
+							if (ghost.direction === Direction.up)    { ghost.lastTurn = Direction.right; }
 						}
-						else if (lastDirection == Direction.right)
+						else if (lastDirection === Direction.right)
 						{
-							if (ghost.direction == Direction.down)  { ghost.lastTurn = Direction.right; }
-							if (ghost.direction == Direction.up)    { ghost.lastTurn = Direction.left;  }
+							if (ghost.direction === Direction.down)  { ghost.lastTurn = Direction.right; }
+							if (ghost.direction === Direction.up)    { ghost.lastTurn = Direction.left;  }
 						}
-						else if (lastDirection == Direction.up)
+						else if (lastDirection === Direction.up)
 						{
-							if (ghost.direction == Direction.left)  { ghost.lastTurn = Direction.left;  }
-							if (ghost.direction == Direction.right) { ghost.lastTurn = Direction.right; }
+							if (ghost.direction === Direction.left)  { ghost.lastTurn = Direction.left;  }
+							if (ghost.direction === Direction.right) { ghost.lastTurn = Direction.right; }
 						}
-						else if (lastDirection == Direction.down)
+						else if (lastDirection === Direction.down)
 						{
-							if (ghost.direction == Direction.left)  { ghost.lastTurn = Direction.right; }
-							if (ghost.direction == Direction.right) { ghost.lastTurn = Direction.left;  }
+							if (ghost.direction === Direction.left)  { ghost.lastTurn = Direction.right; }
+							if (ghost.direction === Direction.right) { ghost.lastTurn = Direction.left;  }
 						}
 						this.placeGhost(d.x, d.y, ghost);
 						this.map[p.x][p.y] = Sprite.nothing;
@@ -653,7 +654,7 @@ Level.prototype.killGhost = function(ghost)
 	}
 };	
 
-Display = function(canvas, imageData)
+var Display = function(canvas, imageData)
 {
 	this.context = canvas.getContext("2d");
 	this.imageData = imageData;
@@ -675,7 +676,7 @@ Display = function(canvas, imageData)
 			this.screenTable[x][y] = 0;
 		}
 	}
-}
+};
 
 Display.prototype.paint = function(game, level, blink)
 {
@@ -744,12 +745,12 @@ Display.prototype.getSpriteIndex = function(value, blink)
 	}
 };
 
-Loader = function()
+var Loader = function()
 {
 	this.count = 0;
 	this.imageData = null;
 	this.audioData = null;
-}
+};
 
 Loader.prototype.loadImageData = function(data)
 {
@@ -798,7 +799,7 @@ Loader.prototype.start = function(callback)
 	}	
 };
 
-Input = function(canvas, game)
+var Input = function(canvas, game)
 {
 	this.canvas = canvas;
 	this.game = game;
@@ -819,7 +820,7 @@ Input = function(canvas, game)
 	document.addEventListener("keyup", this.keyUpHandler, false);
 	this.isWebKit = typeof navigator.userAgent.split("WebKit/")[1] !== "undefined";
 	this.isMozilla = navigator.appVersion.indexOf('Gecko/') >= 0 || ((navigator.userAgent.indexOf("Gecko") >= 0) && !this.isWebKit && (typeof navigator.appVersion !== "undefined"));
-}
+};
 
 Input.prototype.keyDown = function(e)
 {
@@ -851,8 +852,8 @@ Input.prototype.processKey = function(e, keyCode)
 	else if (keyCode == 39) { this.stopEvent(e); this.game.addKey(Key.right); } // right
 	else if (keyCode == 38) { this.stopEvent(e); this.game.addKey(Key.up);    } // up
 	else if (keyCode == 40) { this.stopEvent(e); this.game.addKey(Key.down);  } // down
-	else if (keyCode == 27) { this.stopEvent(e); this.game.addKey(Key.reset); } // esc
-	else if (keyCode == 32) { this.stopEvent(e); this.game.nextLevel();       } // space
+	else if (keyCode == 27) { this.stopEvent(e); this.game.addKey(Key.reset); } // escape
+	else if ((keyCode == 8) || (keyCode == 36)) { this.stopEvent(e); this.game.nextLevel(); } // backspace or delete
 	else if (!this.game.isAlive()) { this.stopEvent(e); this.game.addKey(Key.reset); }
 };
 
@@ -951,7 +952,7 @@ Function.prototype.bind = function(obj)
 	};
 };
 
-Digger = function(element)
+var Digger = function(element)
 {
 	this.canvas = element;
 	this.canvas.focus();
@@ -959,7 +960,7 @@ Digger = function(element)
 	this.loader.loadAudioData(this.soundData);
 	this.loader.loadImageData(this.imageData);
 	this.loader.start(this.loaderCallback.bind(this));
-}
+};
 
 Digger.prototype.loaderCallback = function()
 {
@@ -1082,6 +1083,9 @@ Digger.prototype.interval = function()
 			}
 		}
 	}
+	
+	this.score += this.level.score;
+	this.level.score = 0;
 
 	this.paint();
 };
