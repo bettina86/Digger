@@ -1,47 +1,47 @@
 
-var Direction = 
-{ 
-	none:0, 
-	left:1, 
-	right:2, 
-	up:3, 
-	down:4 
+var Direction =
+{
+	none: 0,
+	left: 1,
+	right: 2,
+	up: 3,
+	down: 4
 };
 
-var Sprite = 
-{ 
-	nothing:0, 
-	stone:1, 
-	ground:2, 
-	ghost180:3, 
-	uvexit:4, 
-	diamond:5, 
-	wall:6, 
-	ghost90L:7, 
-	marker:8, 
-	uvstone:9, 
-	player:10, 
-	ghost90LR: 11, 
-	exit:12, 
-	buffer:13, 
-	changer:14, 
-	ghost90R:15 
+var Sprite =
+{
+	nothing: 0,
+	stone: 1,
+	ground: 2,
+	ghost180: 3,
+	uvexit: 4,
+	diamond: 5,
+	wall: 6,
+	ghost90L: 7,
+	marker: 8,
+	uvstone: 9,
+	player: 10,
+	ghost90LR: 11,
+	exit: 12,
+	buffer: 13,
+	changer: 14,
+	ghost90R: 15
 };
 
-var Key = 
-{ 
-	left:0, 
-	right:1, 
-	up: 2, 
-	down: 3, 
-	reset:4 
+var Key =
+{
+	left: 0,
+	right: 1,
+	up: 2,
+	down: 3,
+	reset: 4
 };
 
-var Sound = 
-{ 
-	diamond:0, 
-	stone: 1, 
-	step:2 
+var Sound =
+{
+	diamond: 0,
+	stone: 1,
+	step: 2
 };
 
 var Player = function(position)
@@ -49,7 +49,7 @@ var Player = function(position)
 	this.position = position;
 	this.alive = true;
 	this.direction = Direction.none;
-	this.stone = [ false, false ];
+	this.stone = [false, false];
 	this.step = 0;
 };
 
@@ -58,22 +58,22 @@ Player.prototype.getImageIndex = function()
 	if (this.alive)
 	{
 		if ((this.direction === Direction.left) && (this.step < 6))
-		{ 
-			return [ 16, 17, 18, 19, 18, 17 ][this.step]; 
+		{
+			return [16, 17, 18, 19, 18, 17][this.step];
 		}
 		else if ((this.direction === Direction.right) && (this.step < 6))
 		{
-			return [ 20, 21, 22, 23, 22, 21 ][this.step];
+			return [20, 21, 22, 23, 22, 21][this.step];
 		}
 		else if ((this.direction === Direction.up) && (this.step < 2))
 		{
-			return [ 24, 25 ][this.step];
+			return [24, 25][this.step];
 		}
 		else if ((this.direction === Direction.down) && (this.step < 2))
 		{
-			return [ 26, 27 ][this.step];
+			return [26, 27][this.step];
 		}
-		return [ 15, 15, 15, 15, 15, 15, 15, 15, 28, 28, 15, 15, 28, 28, 15, 15, 15, 15, 15, 15, 29, 29, 30, 30, 29, 29, 15, 15, 15, 15 ][this.step];
+		return [15, 15, 15, 15, 15, 15, 15, 15, 28, 28, 15, 15, 28, 28, 15, 15, 15, 15, 15, 15, 29, 29, 30, 30, 29, 29, 15, 15, 15, 15][this.step];
 	}
 	return 31;
 };
@@ -96,8 +96,8 @@ var Position = function()
 {
 	if (arguments.length === 1) // copy constructor
 	{
-		this.x = arguments[0].x;	
-		this.y = arguments[0].y;	
+		this.x = arguments[0].x;
+		this.y = arguments[0].y;
 	}
 	if (arguments.length === 2) // (x, y)
 	{
@@ -112,8 +112,8 @@ Position.prototype.equals = function(position)
 };
 
 var Base64Reader = function(data)
-{ 
-	this.alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+{
+	this.alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
 	this.data = data;
 	this.position = 0;
 	this.bits = 0;
@@ -133,7 +133,7 @@ Base64Reader.prototype.readByte = function()
 			{
 				this.bits = (this.bits << 6) | index;
 			}
-			else 
+			else
 			{
 				this.bits <<= 6;
 				tailBits += 6;
@@ -155,7 +155,6 @@ Base64Reader.prototype.readByte = function()
 var Level = function(data)
 {
 	var i, x, y;
-	
 	var reader = new Base64Reader(data);
 
 	this.map = [];
@@ -168,8 +167,8 @@ var Level = function(data)
 		for (x = 0; x < 10; x++)
 		{
 			var b = reader.readByte();
-			this.map[x*2+1][y] = b & 0x0f;
-			this.map[x*2][y] = b >> 4;
+			this.map[x * 2 + 1][y] = b & 0x0f;
+			this.map[x * 2][y] = b >> 4;
 		}
 	}
 	for (i = 0; i < 5; i++)
@@ -205,7 +204,7 @@ var Level = function(data)
 					info = info >> 4;
 					ghost.lastTurn = Direction.left;
 				}
-				ghost.direction = (info < 4) ? [ Direction.down, Direction.up, Direction.right, Direction.left][info] : Direction.none;
+				ghost.direction = (info < 4) ? [Direction.down, Direction.up, Direction.right, Direction.left][info] : Direction.none;
 				this.ghosts.push(ghost);
 				this.map[x][y] = ghost;
 				index++;
@@ -245,26 +244,26 @@ Level.prototype.move = function()
 			{
 				dx = x;
 				dy = y;
-				if (this.map[x][y+1] === Sprite.nothing)
+				if (this.map[x][y + 1] === Sprite.nothing)
 				{
 					dy = y + 1;
 				}
 				else
 				{
-					if ((this.map[x][y+1] === Sprite.stone) || (this.map[x][y+1] === Sprite.diamond))
+					if ((this.map[x][y + 1] === Sprite.stone) || (this.map[x][y + 1] === Sprite.diamond))
 					{
-						if ((this.map[x-1][y+1] === Sprite.nothing) && (this.map[x-1][y] === Sprite.nothing))
+						if ((this.map[x - 1][y + 1] === Sprite.nothing) && (this.map[x - 1][y] === Sprite.nothing))
 						{
 							dx = x - 1;
 							dy = y + 1;
 						}
-						else if ((this.map[x+1][y+1] === Sprite.nothing) && (this.map[x+1][y] === Sprite.nothing))
+						else if ((this.map[x + 1][y + 1] === Sprite.nothing) && (this.map[x + 1][y] === Sprite.nothing))
 						{
 							dx = x + 1;
 							dy = y + 1;
 						}
 					}
-					if ((this.map[x][y+1] === Sprite.changer) && ((this.map[x][y] === Sprite.stone) || (this.map[x][y] === Sprite.uvstone)) && (this.map[x][y+2] === Sprite.nothing))
+					if ((this.map[x][y + 1] === Sprite.changer) && ((this.map[x][y] === Sprite.stone) || (this.map[x][y] === Sprite.uvstone)) && (this.map[x][y + 2] === Sprite.nothing))
 					{
 						dy = y + 2;
 					}
@@ -285,26 +284,26 @@ Level.prototype.move = function()
 			{
 				dx = x;
 				dy = y;
-				if (this.map[x][y+1] === Sprite.marker)
+				if (this.map[x][y + 1] === Sprite.marker)
 				{
 					dy = y + 1;
 				}
 				else
 				{
-					if ((this.map[x][y+1] === Sprite.stone) || (this.map[x][y+1] === Sprite.diamond) || (this.map[x][y+1] === Sprite.nothing))
+					if ((this.map[x][y + 1] === Sprite.stone) || (this.map[x][y + 1] === Sprite.diamond) || (this.map[x][y + 1] === Sprite.nothing))
 					{
-						if ((this.map[x-1][y+1] === Sprite.marker) && ((this.map[x-1][y] === Sprite.nothing) || (this.map[x-1][y] === Sprite.marker)))
+						if ((this.map[x - 1][y + 1] === Sprite.marker) && ((this.map[x - 1][y] === Sprite.nothing) || (this.map[x - 1][y] === Sprite.marker)))
 						{
 							dx = x - 1;
 							dy = y + 1;
 						}
-						else if ((this.map[x+1][y+1] === Sprite.marker) && ((this.map[x+1][y] === Sprite.nothing) || (this.map[x+1][y] === Sprite.marker)))
+						else if ((this.map[x + 1][y + 1] === Sprite.marker) && ((this.map[x + 1][y] === Sprite.nothing) || (this.map[x + 1][y] === Sprite.marker)))
 						{
 							dx = x + 1;
 							dy = y + 1;
 						}
 					}
-					if ((this.map[x][y+1] === Sprite.changer) && ((this.map[x][y] === Sprite.stone) || (this.map[x][y] === Sprite.uvstone)) && (this.map[x][y+2] === Sprite.marker))
+					if ((this.map[x][y + 1] === Sprite.changer) && ((this.map[x][y] === Sprite.stone) || (this.map[x][y] === Sprite.uvstone)) && (this.map[x][y + 2] === Sprite.marker))
 					{
 						dy = y + 2;
 					}
@@ -537,10 +536,10 @@ Level.prototype.moveGhost = function(ghost)
 					}
 					if (this.map[d.x][d.y] === Sprite.nothing)
 					{
-						if (d.x < p.x) { ghost.direction = Direction.left;  }
+						if (d.x < p.x) { ghost.direction = Direction.left; }
 						if (d.x > p.x) { ghost.direction = Direction.right; }
-						if (d.y < p.y) { ghost.direction = Direction.up;    }
-						if (d.y > p.y) { ghost.direction = Direction.down;  }
+						if (d.y < p.y) { ghost.direction = Direction.up; }
+						if (d.y > p.y) { ghost.direction = Direction.down; }
 						this.placeGhost(d.x, d.y, ghost);
 						this.map[p.x][p.y] = Sprite.nothing;
 						return;
@@ -652,7 +651,7 @@ Level.prototype.killGhost = function(ghost)
 		}
 		ghost.alive = false;
 	}
-};	
+};
 
 var Display = function(canvas, imageData)
 {
@@ -766,14 +765,14 @@ Loader.prototype.loadAudioData = function(data)
 Loader.prototype.start = function(callback)
 {
 	var i;
-	
+
 	for (i = 0; i < this.audioData.length; i++)
 	{
 		var audio = document.createElement('audio');
-		if ((audio !== null) && (audio.canPlayType("audio/wav")))
+		if ((audio !== null) && (audio.canPlayType('audio/wav')))
 		{
-			audio.src = "data:audio/wav;base64," + this.audioData[i];
-			audio.preload = "auto";
+			audio.src = 'data:audio/wav;base64,' + this.audioData[i];
+			audio.preload = 'auto';
 			audio.load();
 		}
 		this.audioData[i] = audio;
@@ -794,7 +793,7 @@ Loader.prototype.start = function(callback)
 	{
 		var image = new Image();
 		image.onload = onload;
-		image.src = "data:image/png;base64," + this.imageData[i];
+		image.src = 'data:image/png;base64,' + this.imageData[i];
 		this.imageData[i] = image;
 	}	
 };
@@ -824,7 +823,7 @@ var Input = function(canvas, game)
 
 Input.prototype.keyDown = function(e)
 {
-	if (!this.isMozilla)
+	if (!this.isMozilla && !e.ctrlKey && !e.altKey && !e.altKey && !e.metaKey)
 	{
 		this.processKey(e, e.keyCode);
 	}
@@ -832,7 +831,7 @@ Input.prototype.keyDown = function(e)
 
 Input.prototype.keyPress = function(e)
 {
-	if (this.isMozilla)
+	if (this.isMozilla && !e.ctrlKey && !e.altKey && !e.altKey && !e.metaKey)
 	{
 		this.processKey(e, (e.keyCode != 0) ? e.keyCode : (e.charCode === 32) ? 32 : 0);
 	}
@@ -1047,7 +1046,7 @@ Digger.prototype.interval = function()
 		{
 			this.level.soundTable[i] = false;
 		}
-		
+
 		// keyboard
 		for (i = 0; i < 4; i++)
 		{
@@ -1066,7 +1065,7 @@ Digger.prototype.interval = function()
 		else
 		{
 			this.level.move();
-		
+
 			// play sound
 			for (i = 0; i < this.level.soundTable.length; i++)
 			{
@@ -1083,7 +1082,7 @@ Digger.prototype.interval = function()
 			}
 		}
 	}
-	
+
 	this.score += this.level.score;
 	this.level.score = 0;
 
