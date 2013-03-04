@@ -30,13 +30,12 @@ var Digger;
                 this._bitsLength -= tailBits;
             }
             this._bitsLength -= 8;
-            return (this._bits >> this._bitsLength) & 255;
+            return (this._bits >> this._bitsLength) & 0xff;
         };
         return Base64Reader;
     })();
     Digger.Base64Reader = Base64Reader;    
 })(Digger || (Digger = {}));
-
 var Digger;
 (function (Digger) {
     (function (Direction) {
@@ -48,9 +47,7 @@ var Digger;
         Direction.down = 4;
     })(Digger.Direction || (Digger.Direction = {}));
     var Direction = Digger.Direction;
-
 })(Digger || (Digger = {}));
-
 var Digger;
 (function (Digger) {
     var Game = (function () {
@@ -111,14 +108,12 @@ var Digger;
         Game.prototype.addKey = function (key) {
             if(key < 4) {
                 this._keys[key] = true;
-            } else {
-                if(key == Digger.Key.reset) {
-                    this._lives--;
-                    if(this._lives >= 0) {
-                        this.loadLevel();
-                    } else {
-                        this.restart();
-                    }
+            } else if(key == Digger.Key.reset) {
+                this._lives--;
+                if(this._lives >= 0) {
+                    this.loadLevel();
+                } else {
+                    this.restart();
                 }
             }
         };
@@ -230,7 +225,6 @@ var Digger;
     })();
     Digger.Game = Game;    
 })(Digger || (Digger = {}));
-
 var Digger;
 (function (Digger) {
     var Ghost = (function () {
@@ -302,7 +296,6 @@ var Digger;
     })();
     Digger.Ghost = Ghost;    
 })(Digger || (Digger = {}));
-
 var Digger;
 (function (Digger) {
     var InputHandler = (function () {
@@ -353,75 +346,53 @@ var Digger;
         };
         InputHandler.prototype.keyUp = function (e) {
             switch(e.keyCode) {
-                case 37: {
+                case 37:
                     this._game.removeKey(Digger.Key.left);
                     break;
-
-                }
-                case 39: {
+                case 39:
                     this._game.removeKey(Digger.Key.right);
                     break;
-
-                }
-                case 38: {
+                case 38:
                     this._game.removeKey(Digger.Key.up);
                     break;
-
-                }
-                case 40: {
+                case 40:
                     this._game.removeKey(Digger.Key.down);
                     break;
-
-                }
             }
         };
         InputHandler.prototype.processKey = function (e, keyCode) {
             switch(e.keyCode) {
-                case 37: {
+                case 37:
                     this.stopEvent(e);
                     this._game.addKey(Digger.Key.left);
                     break;
-
-                }
-                case 39: {
+                case 39:
                     this.stopEvent(e);
                     this._game.addKey(Digger.Key.right);
                     break;
-
-                }
-                case 38: {
+                case 38:
                     this.stopEvent(e);
                     this._game.addKey(Digger.Key.up);
                     break;
-
-                }
-                case 40: {
+                case 40:
                     this.stopEvent(e);
                     this._game.addKey(Digger.Key.down);
                     break;
-
-                }
-                case 27: {
+                case 27:
                     this.stopEvent(e);
                     this._game.addKey(Digger.Key.reset);
                     break;
-
-                }
                 case 8:
-                case 36: {
+                case 36:
                     this.stopEvent(e);
                     this._game.nextLevel();
                     break;
-
-                }
-                default: {
+                default:
                     if(!this._game.isPlayerAlive()) {
                         this.stopEvent(e);
                         this._game.addKey(Digger.Key.reset);
                     }
                     break;
-
-                }
             }
         };
         InputHandler.prototype.mouseDown = function (e) {
@@ -432,13 +403,11 @@ var Digger;
             e.preventDefault();
             if(e.touches.length > 3) {
                 this._game.nextLevel();
+            } else if((e.touches.length > 2) || (!this._game.isPlayerAlive())) {
+                this._game.addKey(Digger.Key.reset);
             } else {
-                if((e.touches.length > 2) || (!this._game.isPlayerAlive())) {
-                    this._game.addKey(Digger.Key.reset);
-                } else {
-                    for(var i = 0; i < e.touches.length; i++) {
-                        this._touchPosition = new Digger.Position(e.touches[i].pageX, e.touches[i].pageY);
-                    }
+                for(var i = 0; i < e.touches.length; i++) {
+                    this._touchPosition = new Digger.Position(e.touches[i].pageX, e.touches[i].pageY);
                 }
             }
         };
@@ -451,18 +420,12 @@ var Digger;
                     var direction = null;
                     if((this._touchPosition.x - x) > 20) {
                         direction = Digger.Key.left;
-                    } else {
-                        if((this._touchPosition.x - x) < -20) {
-                            direction = Digger.Key.right;
-                        } else {
-                            if((this._touchPosition.y - y) > 20) {
-                                direction = Digger.Key.up;
-                            } else {
-                                if((this._touchPosition.y - y) < -20) {
-                                    direction = Digger.Key.down;
-                                }
-                            }
-                        }
+                    } else if((this._touchPosition.x - x) < -20) {
+                        direction = Digger.Key.right;
+                    } else if((this._touchPosition.y - y) > 20) {
+                        direction = Digger.Key.up;
+                    } else if((this._touchPosition.y - y) < -20) {
+                        direction = Digger.Key.down;
                     }
                     if(direction !== null) {
                         this._touchPosition = new Digger.Position(x, y);
@@ -493,7 +456,6 @@ var Digger;
     })();
     Digger.InputHandler = InputHandler;    
 })(Digger || (Digger = {}));
-
 var Digger;
 (function (Digger) {
     (function (Key) {
@@ -505,9 +467,7 @@ var Digger;
         Key.reset = 4;
     })(Digger.Key || (Digger.Key = {}));
     var Key = Digger.Key;
-
 })(Digger || (Digger = {}));
-
 var Digger;
 (function (Digger) {
     var Level = (function () {
@@ -523,7 +483,7 @@ var Digger;
             for(var y = 0; y < 14; y++) {
                 for(var x = 0; x < 10; x++) {
                     var b = reader.readByte();
-                    this._map[x * 2 + 1][y] = b & 15;
+                    this._map[x * 2 + 1][y] = b & 0x0f;
                     this._map[x * 2][y] = b >> 4;
                 }
             }
@@ -533,7 +493,7 @@ var Digger;
             this._player = new Digger.Player(new Digger.Position(reader.readByte(), reader.readByte() - 2));
             this._map[this._player.position.x][this._player.position.y] = Digger.Sprite.player;
             this._diamonds = reader.readByte();
-            this._diamonds = (this._diamonds >> 4) * 10 + (this._diamonds & 15);
+            this._diamonds = (this._diamonds >> 4) * 10 + (this._diamonds & 0x0f);
             var ghostData = [];
             for(var i = 0; i < 8; i++) {
                 ghostData.push(reader.readByte());
@@ -543,7 +503,7 @@ var Digger;
             for(var y = 0; y < 14; y++) {
                 for(var x = 0; x < 20; x++) {
                     if((this._map[x][y] === Digger.Sprite.ghost90L) || (this._map[x][y] === Digger.Sprite.ghost90R) || (this._map[x][y] === Digger.Sprite.ghost90LR) || (this._map[x][y] === Digger.Sprite.ghost180)) {
-                        var info = ((index & 1) !== 0) ? (ghostData[index >> 1] & 15) : (ghostData[index >> 1] >> 4);
+                        var info = ((index & 1) !== 0) ? (ghostData[index >> 1] & 0x0f) : (ghostData[index >> 1] >> 4);
                         var direction = (info < 4) ? [
                             Digger.Direction.down, 
                             Digger.Direction.up, 
@@ -620,11 +580,9 @@ var Digger;
                                 if((this._map[x - 1][y + 1] === Digger.Sprite.nothing) && (this._map[x - 1][y] === Digger.Sprite.nothing)) {
                                     dx = x - 1;
                                     dy = y + 1;
-                                } else {
-                                    if((this._map[x + 1][y + 1] === Digger.Sprite.nothing) && (this._map[x + 1][y] === Digger.Sprite.nothing)) {
-                                        dx = x + 1;
-                                        dy = y + 1;
-                                    }
+                                } else if((this._map[x + 1][y + 1] === Digger.Sprite.nothing) && (this._map[x + 1][y] === Digger.Sprite.nothing)) {
+                                    dx = x + 1;
+                                    dy = y + 1;
                                 }
                             }
                             if((this._map[x][y + 1] === Digger.Sprite.changer) && ((this._map[x][y] === Digger.Sprite.stone) || (this._map[x][y] === Digger.Sprite.uvstone)) && (this._map[x][y + 2] === Digger.Sprite.nothing)) {
@@ -649,11 +607,9 @@ var Digger;
                                 if((this._map[x - 1][y + 1] === Digger.Sprite.marker) && ((this._map[x - 1][y] === Digger.Sprite.nothing) || (this._map[x - 1][y] === Digger.Sprite.marker))) {
                                     dx = x - 1;
                                     dy = y + 1;
-                                } else {
-                                    if((this._map[x + 1][y + 1] === Digger.Sprite.marker) && ((this._map[x + 1][y] === Digger.Sprite.nothing) || (this._map[x + 1][y] === Digger.Sprite.marker))) {
-                                        dx = x + 1;
-                                        dy = y + 1;
-                                    }
+                                } else if((this._map[x + 1][y + 1] === Digger.Sprite.marker) && ((this._map[x + 1][y] === Digger.Sprite.nothing) || (this._map[x + 1][y] === Digger.Sprite.marker))) {
+                                    dx = x + 1;
+                                    dy = y + 1;
                                 }
                             }
                             if((this._map[x][y + 1] === Digger.Sprite.changer) && ((this._map[x][y] === Digger.Sprite.stone) || (this._map[x][y] === Digger.Sprite.uvstone)) && (this._map[x][y + 2] === Digger.Sprite.marker)) {
@@ -712,11 +668,9 @@ var Digger;
                         if(keys[Digger.Key.up]) {
                             z.y--;
                             this._player.direction = Digger.Direction.up;
-                        } else {
-                            if(keys[Digger.Key.down]) {
-                                z.y++;
-                                this._player.direction = Digger.Direction.down;
-                            }
+                        } else if(keys[Digger.Key.down]) {
+                            z.y++;
+                            this._player.direction = Digger.Direction.down;
                         }
                     }
                 }
@@ -801,59 +755,55 @@ var Digger;
                             w[0].y++;
                             w[1].y--;
                         }
-                    } else {
-                        if(ghost.type === Digger.Sprite.ghost90L) {
-                            if(ghost.direction === Digger.Direction.left) {
-                                w[0].x--;
-                                w[1].y++;
-                                w[2].y--;
-                                w[3].x++;
-                            }
-                            if(ghost.direction === Digger.Direction.right) {
-                                w[0].x++;
-                                w[1].y--;
-                                w[2].y++;
-                                w[3].x--;
-                            }
-                            if(ghost.direction === Digger.Direction.up) {
-                                w[0].y--;
-                                w[1].x--;
-                                w[2].x++;
-                                w[3].y++;
-                            }
-                            if(ghost.direction === Digger.Direction.down) {
-                                w[0].y++;
-                                w[1].x++;
-                                w[2].x--;
-                                w[3].y--;
-                            }
-                        } else {
-                            if(ghost.type === Digger.Sprite.ghost90R) {
-                                if(ghost.direction === Digger.Direction.left) {
-                                    w[0].x--;
-                                    w[1].y--;
-                                    w[2].y++;
-                                    w[3].x++;
-                                }
-                                if(ghost.direction === Digger.Direction.right) {
-                                    w[0].x++;
-                                    w[1].y++;
-                                    w[2].y--;
-                                    w[3].x--;
-                                }
-                                if(ghost.direction === Digger.Direction.up) {
-                                    w[0].y--;
-                                    w[1].x++;
-                                    w[2].x--;
-                                    w[3].y++;
-                                }
-                                if(ghost.direction === Digger.Direction.down) {
-                                    w[0].y++;
-                                    w[1].x--;
-                                    w[2].x++;
-                                    w[3].y--;
-                                }
-                            }
+                    } else if(ghost.type === Digger.Sprite.ghost90L) {
+                        if(ghost.direction === Digger.Direction.left) {
+                            w[0].x--;
+                            w[1].y++;
+                            w[2].y--;
+                            w[3].x++;
+                        }
+                        if(ghost.direction === Digger.Direction.right) {
+                            w[0].x++;
+                            w[1].y--;
+                            w[2].y++;
+                            w[3].x--;
+                        }
+                        if(ghost.direction === Digger.Direction.up) {
+                            w[0].y--;
+                            w[1].x--;
+                            w[2].x++;
+                            w[3].y++;
+                        }
+                        if(ghost.direction === Digger.Direction.down) {
+                            w[0].y++;
+                            w[1].x++;
+                            w[2].x--;
+                            w[3].y--;
+                        }
+                    } else if(ghost.type === Digger.Sprite.ghost90R) {
+                        if(ghost.direction === Digger.Direction.left) {
+                            w[0].x--;
+                            w[1].y--;
+                            w[2].y++;
+                            w[3].x++;
+                        }
+                        if(ghost.direction === Digger.Direction.right) {
+                            w[0].x++;
+                            w[1].y++;
+                            w[2].y--;
+                            w[3].x--;
+                        }
+                        if(ghost.direction === Digger.Direction.up) {
+                            w[0].y--;
+                            w[1].x++;
+                            w[2].x--;
+                            w[3].y++;
+                        }
+                        if(ghost.direction === Digger.Direction.down) {
+                            w[0].y++;
+                            w[1].x--;
+                            w[2].x++;
+                            w[3].y--;
                         }
                     }
                     for(var i = 0; i < 4; i++) {
@@ -881,114 +831,100 @@ var Digger;
                             }
                         }
                     }
-                } else {
-                    if(ghost.type === Digger.Sprite.ghost90LR) {
-                        if(ghost.direction === Digger.Direction.left) {
-                            w[0].x--;
-                            w[3].x++;
-                            if(ghost.lastTurn === Digger.Direction.left) {
-                                w[1].y--;
-                                w[2].y++;
-                            } else {
-                                w[1].y++;
-                                w[2].y--;
-                            }
+                } else if(ghost.type === Digger.Sprite.ghost90LR) {
+                    if(ghost.direction === Digger.Direction.left) {
+                        w[0].x--;
+                        w[3].x++;
+                        if(ghost.lastTurn === Digger.Direction.left) {
+                            w[1].y--;
+                            w[2].y++;
                         } else {
-                            if(ghost.direction === Digger.Direction.right) {
-                                w[0].x++;
-                                w[3].x--;
-                                if(ghost.lastTurn === Digger.Direction.left) {
-                                    w[1].y++;
-                                    w[2].y--;
-                                } else {
-                                    w[1].y--;
-                                    w[2].y++;
-                                }
-                            } else {
-                                if(ghost.direction === Digger.Direction.up) {
-                                    w[0].y--;
-                                    w[3].y++;
-                                    if(ghost.lastTurn === Digger.Direction.left) {
-                                        w[1].x++;
-                                        w[2].x--;
-                                    } else {
-                                        w[1].x--;
-                                        w[2].x++;
-                                    }
-                                } else {
-                                    if(ghost.direction === Digger.Direction.down) {
-                                        w[0].y++;
-                                        w[3].y--;
-                                        if(ghost.lastTurn === Digger.Direction.left) {
-                                            w[1].x--;
-                                            w[2].x++;
-                                        } else {
-                                            w[1].x++;
-                                            w[2].x--;
-                                        }
-                                    }
-                                }
-                            }
+                            w[1].y++;
+                            w[2].y--;
                         }
-                        for(var i = 0; i < 4; i++) {
-                            if(!p.equals(w[i])) {
-                                var d = w[i].clone();
-                                if(this.isPlayer(d.x, d.y)) {
-                                    this._player.kill();
+                    } else if(ghost.direction === Digger.Direction.right) {
+                        w[0].x++;
+                        w[3].x--;
+                        if(ghost.lastTurn === Digger.Direction.left) {
+                            w[1].y++;
+                            w[2].y--;
+                        } else {
+                            w[1].y--;
+                            w[2].y++;
+                        }
+                    } else if(ghost.direction === Digger.Direction.up) {
+                        w[0].y--;
+                        w[3].y++;
+                        if(ghost.lastTurn === Digger.Direction.left) {
+                            w[1].x++;
+                            w[2].x--;
+                        } else {
+                            w[1].x--;
+                            w[2].x++;
+                        }
+                    } else if(ghost.direction === Digger.Direction.down) {
+                        w[0].y++;
+                        w[3].y--;
+                        if(ghost.lastTurn === Digger.Direction.left) {
+                            w[1].x--;
+                            w[2].x++;
+                        } else {
+                            w[1].x++;
+                            w[2].x--;
+                        }
+                    }
+                    for(var i = 0; i < 4; i++) {
+                        if(!p.equals(w[i])) {
+                            var d = w[i].clone();
+                            if(this.isPlayer(d.x, d.y)) {
+                                this._player.kill();
+                            }
+                            if(this._map[d.x][d.y] === Digger.Sprite.nothing) {
+                                var lastDirection = ghost.direction;
+                                if(d.x < p.x) {
+                                    ghost.direction = Digger.Direction.left;
                                 }
-                                if(this._map[d.x][d.y] === Digger.Sprite.nothing) {
-                                    var lastDirection = ghost.direction;
-                                    if(d.x < p.x) {
-                                        ghost.direction = Digger.Direction.left;
-                                    }
-                                    if(d.x > p.x) {
-                                        ghost.direction = Digger.Direction.right;
-                                    }
-                                    if(d.y < p.y) {
-                                        ghost.direction = Digger.Direction.up;
-                                    }
-                                    if(d.y > p.y) {
-                                        ghost.direction = Digger.Direction.down;
-                                    }
-                                    if(lastDirection === Digger.Direction.left) {
-                                        if(ghost.direction === Digger.Direction.down) {
-                                            ghost.lastTurn = Digger.Direction.left;
-                                        }
-                                        if(ghost.direction === Digger.Direction.up) {
-                                            ghost.lastTurn = Digger.Direction.right;
-                                        }
-                                    } else {
-                                        if(lastDirection === Digger.Direction.right) {
-                                            if(ghost.direction === Digger.Direction.down) {
-                                                ghost.lastTurn = Digger.Direction.right;
-                                            }
-                                            if(ghost.direction === Digger.Direction.up) {
-                                                ghost.lastTurn = Digger.Direction.left;
-                                            }
-                                        } else {
-                                            if(lastDirection === Digger.Direction.up) {
-                                                if(ghost.direction === Digger.Direction.left) {
-                                                    ghost.lastTurn = Digger.Direction.left;
-                                                }
-                                                if(ghost.direction === Digger.Direction.right) {
-                                                    ghost.lastTurn = Digger.Direction.right;
-                                                }
-                                            } else {
-                                                if(lastDirection === Digger.Direction.down) {
-                                                    if(ghost.direction === Digger.Direction.left) {
-                                                        ghost.lastTurn = Digger.Direction.right;
-                                                    }
-                                                    if(ghost.direction === Digger.Direction.right) {
-                                                        ghost.lastTurn = Digger.Direction.left;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    this.placeGhost(d.x, d.y, ghost);
-                                    this._map[p.x][p.y] = Digger.Sprite.nothing;
-                                    return;
+                                if(d.x > p.x) {
+                                    ghost.direction = Digger.Direction.right;
                                 }
+                                if(d.y < p.y) {
+                                    ghost.direction = Digger.Direction.up;
+                                }
+                                if(d.y > p.y) {
+                                    ghost.direction = Digger.Direction.down;
+                                }
+                                if(lastDirection === Digger.Direction.left) {
+                                    if(ghost.direction === Digger.Direction.down) {
+                                        ghost.lastTurn = Digger.Direction.left;
+                                    }
+                                    if(ghost.direction === Digger.Direction.up) {
+                                        ghost.lastTurn = Digger.Direction.right;
+                                    }
+                                } else if(lastDirection === Digger.Direction.right) {
+                                    if(ghost.direction === Digger.Direction.down) {
+                                        ghost.lastTurn = Digger.Direction.right;
+                                    }
+                                    if(ghost.direction === Digger.Direction.up) {
+                                        ghost.lastTurn = Digger.Direction.left;
+                                    }
+                                } else if(lastDirection === Digger.Direction.up) {
+                                    if(ghost.direction === Digger.Direction.left) {
+                                        ghost.lastTurn = Digger.Direction.left;
+                                    }
+                                    if(ghost.direction === Digger.Direction.right) {
+                                        ghost.lastTurn = Digger.Direction.right;
+                                    }
+                                } else if(lastDirection === Digger.Direction.down) {
+                                    if(ghost.direction === Digger.Direction.left) {
+                                        ghost.lastTurn = Digger.Direction.right;
+                                    }
+                                    if(ghost.direction === Digger.Direction.right) {
+                                        ghost.lastTurn = Digger.Direction.left;
+                                    }
+                                }
+                                this.placeGhost(d.x, d.y, ghost);
+                                this._map[p.x][p.y] = Digger.Sprite.nothing;
+                                return;
                             }
                         }
                     }
@@ -1036,55 +972,36 @@ var Digger;
                 case Digger.Sprite.uvexit:
                 case Digger.Sprite.buffer:
                 case Digger.Sprite.marker:
-                case Digger.Sprite.uvstone: {
+                case Digger.Sprite.uvstone:
                     return 0;
-
-                }
-                case Digger.Sprite.stone: {
+                case Digger.Sprite.stone:
                     return 1;
-
-                }
-                case Digger.Sprite.ground: {
+                case Digger.Sprite.ground:
                     return 2;
-
-                }
-                case Digger.Sprite.diamond: {
+                case Digger.Sprite.diamond:
                     return 13 - ((blink + 4) % 6);
-
-                }
-                case Digger.Sprite.wall: {
+                case Digger.Sprite.wall:
                     return 14;
-
-                }
-                case Digger.Sprite.exit: {
+                case Digger.Sprite.exit:
                     return 32;
-
-                }
-                case Digger.Sprite.changer: {
+                case Digger.Sprite.changer:
                     return 33;
-
-                }
                 case Digger.Sprite.ghost90L:
                 case Digger.Sprite.ghost90R:
                 case Digger.Sprite.ghost90LR:
-                case Digger.Sprite.ghost180: {
+                case Digger.Sprite.ghost180:
                     return this.ghost(x, y).imageIndex;
-
-                }
-                case Digger.Sprite.player: {
+                case Digger.Sprite.player:
                     if((x == this._player.position.x) && (y == this._player.position.y)) {
                         return this._player.imageIndex;
                     }
                     return 15;
-
-                }
             }
         };
         return Level;
     })();
     Digger.Level = Level;    
 })(Digger || (Digger = {}));
-
 Digger.Game.prototype.levelData = [
     "ZmZmZmZmZmZmZmUiIiIcEmIiJlZgEmZiERJiIiZWYCJlYhESYmZmVmAlZWYiIlJiIlZgJVVWZlIiYiFWZmZmVVZWZmIiVmERElVWVmVSIVZmFSBWVlZiUiFWYRWgZlZWYlIhVmYVIGVWVmJSIVZhFSBlUhJVUiFWZhUhZVISVVIiVmZmZmZmZmZmZmYBAECcQAQLUwAAAAAAAAAA", 
     "ZmZmZmZmZmZmZmoBAiIiIiIAARZmZgImZmFiVVVWYiICJlVhYiIiJmJRUSZVYWIAARZiJlZmVWFiVVVWYiZVVlVRYiIiJmImVlZVYWIiIiZiJlVmZmFiIiImYiZlVWwhIiIiJmIiZlYiJmZmIhZiIiZmIiIiIiEWYiACIiERVVVVVmZmZmZmZmZmZmYCnEA4QQEDQgAAAAAAAAAA", 
@@ -1198,28 +1115,22 @@ var Digger;
             this._step++;
             switch(this._direction) {
                 case Digger.Direction.left:
-                case Digger.Direction.right: {
+                case Digger.Direction.right:
                     if(this._step >= 6) {
                         this._step = 0;
                     }
                     break;
-
-                }
                 case Digger.Direction.up:
-                case Digger.Direction.down: {
+                case Digger.Direction.down:
                     if(this._step >= 2) {
                         this._step = 0;
                     }
                     break;
-
-                }
-                default: {
+                default:
                     if(this._step >= 30) {
                         this._step = 0;
                     }
                     break;
-
-                }
             }
         };
         Object.defineProperty(Player.prototype, "imageIndex", {
@@ -1234,31 +1145,25 @@ var Digger;
                             18, 
                             17
                         ][this._step];
-                    } else {
-                        if((this._direction === Digger.Direction.right) && (this._step < 6)) {
-                            return [
-                                20, 
-                                21, 
-                                22, 
-                                23, 
-                                22, 
-                                21
-                            ][this._step];
-                        } else {
-                            if((this._direction === Digger.Direction.up) && (this._step < 2)) {
-                                return [
-                                    24, 
-                                    25
-                                ][this._step];
-                            } else {
-                                if((this._direction === Digger.Direction.down) && (this._step < 2)) {
-                                    return [
-                                        26, 
-                                        27
-                                    ][this._step];
-                                }
-                            }
-                        }
+                    } else if((this._direction === Digger.Direction.right) && (this._step < 6)) {
+                        return [
+                            20, 
+                            21, 
+                            22, 
+                            23, 
+                            22, 
+                            21
+                        ][this._step];
+                    } else if((this._direction === Digger.Direction.up) && (this._step < 2)) {
+                        return [
+                            24, 
+                            25
+                        ][this._step];
+                    } else if((this._direction === Digger.Direction.down) && (this._step < 2)) {
+                        return [
+                            26, 
+                            27
+                        ][this._step];
                     }
                     return [
                         15, 
@@ -1302,7 +1207,6 @@ var Digger;
     })();
     Digger.Player = Player;    
 })(Digger || (Digger = {}));
-
 var Digger;
 (function (Digger) {
     var Position = (function () {
@@ -1320,7 +1224,6 @@ var Digger;
     })();
     Digger.Position = Position;    
 })(Digger || (Digger = {}));
-
 var Digger;
 (function (Digger) {
     (function (Sound) {
@@ -1330,9 +1233,7 @@ var Digger;
         Sound.step = 2;
     })(Digger.Sound || (Digger.Sound = {}));
     var Sound = Digger.Sound;
-
 })(Digger || (Digger = {}));
-
 var Digger;
 (function (Digger) {
     (function (Sprite) {
@@ -1355,9 +1256,7 @@ var Digger;
         Sprite.ghost90R = 15;
     })(Digger.Sprite || (Digger.Sprite = {}));
     var Sprite = Digger.Sprite;
-
 })(Digger || (Digger = {}));
-
 Digger.Game.prototype.imageData = [ "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" ];
 Digger.Game.prototype.soundData = [ "UklGRvwDAABXQVZFZm10IBIAAAABAAEAQB8AAIA+AAACABAAAABkYXRhOAIAAITBhMGEwYTBhMGEwYTBhMGI/4j/iP+I/4j/iP+I/4j/iP+EwYTBhMGEwYTBhMGEwYTBiP+I/4j/iP+I/4j/iP+I/4j/hMGEwYTBhMGEwYTBhMGEwYj/iP+I/4j/iP+I/4j/iP+EwYTBhMGEwYTBhMGEwYTBiP+I/4j/iP+I/4j/iP+I/4TBhMGEwYTBhMGEwYTBiP+I/4j/iP+I/4j/iP+I/4TBhMGEwYTBhMGEwYTBiP+I/4j/iP+I/4j/iP+I/4TBhMGEwYTBhMGEwYTBiP+I/4j/iP+I/4j/iP+EwYTBhMGEwYTBhMGI/4j/iP+I/4j/iP+I/4TBhMGEwYTBhMGEwYTBiP+I/4j/iP+I/4j/hMGEwYTBhMGEwYTBiP+I/4j/iP+I/4j/iP+EwYTBhMGEwYTBhMGI/4j/iP+I/4j/iP+EwYTBhMGEwYTBiP+I/4j/iP+I/4j/hMGEwYTBhMGEwYj/iP+I/4j/iP+I/4TBhMGEwYTBhMGI/4j/iP+I/4j/hMGEwYTBhMGEwYj/iP+I/4j/iP+EwYTBhMGEwYj/iP+I/4j/iP+EwYTBhMGEwYj/iP+I/4j/hMGEwYTBhMGEwYj/iP+I/4j/hMGEwYTBiP+I/4j/iP+EwYTBhMGEwYj/iP+I/4TBhMGEwYj/iP+I/4TBhMGEwYj/iP+I/4TBhMGEwYj/iP+I/4TBhMGI/4j/hMGEwYTBiP+I/4TBhMGI/4TBhMGI/4j/hMGI/4TBiP+EwYj/iP9BRkFulQEAAAQLc3RyZWFtdHlwZWSB6AOEAUCEhIQTTlNNdXRhYmxlRGljdGlvbmFyeQCEhAxOU0RpY3Rpb25hcnkAhIQITlNPYmplY3QAhYQBaQOShISECE5TU3RyaW5nAZWEASsERGF0ZYaShISEBk5TRGF0ZQCVhAFkgyJTft3Wm7JBhpKEl5gSVGFibGVzQXJlQmlnRW5kaWFuhpKEhIQITlNOdW1iZXIAhIQHTlNWYWx1ZQCVhAEqhIQBY54AhpKEl5gIQ2hhbm5lbHOGkoSEhA5OU011dGFibGVBcnJheQCEhAdOU0FycmF5AJWWAZKEk5YFkoSXmANNYXiGkoScnYSEAWahgwDw+T6GkoSXmA1BRlJNU1dhdmVmb3JthpKEhIQGTlNEYXRhAJWWCIQEWzhjXX+nrj4AAAAAhpKEl5gOQUZNZWFuV2F2ZWZvcm2GkoSplgijoP91PgAAAACGkoSXmANSTVOGkoScnaahg8u8sD6GkoSXmA1BRk1heFdhdmVmb3JthpKEqZYIowDw+T4AAAAAhoaGhgA=", "UklGRqIBAABXQVZFZm10IBIAAAABAAEAQB8AAIA+AAACABAAAABkYXRhfAEAAITBhMGEwYTBhMGEwYTBhMGEwYTBhMGEwYTBhMGEwYTBhMGEwYTBhMGEwYTBhMGEwYTBhMGEwYTBhMGEwYTBhMGEwYTBiP+I/4j/iP+I/4j/iP+I/4j/iP+I/4j/iP+I/4j/iP+I/4j/iP+I/4j/iP+I/4j/iP+I/4j/iP+I/4j/iP+I/4j/iP+I/4TBhMGEwYTBhMGEwYTBhMGEwYTBhMGEwYTBhMGEwYTBhMGEwYTBhMGEwYTBhMGEwYTBhMGEwYTBhMGEwYTBhMGEwYTBiP+I/4j/iP+I/4j/iP+I/4j/iP+I/4j/iP+I/4j/iP+I/4j/iP+I/4j/iP+I/4j/iP+I/4j/iP+I/4j/iP+I/4j/iP+I/4TBhMGEwYj/hMGI/4TBhMGI/4TBhMGI/4j/hMGEwYj/iP+EwYTBiP+I/4TBhMGEwYj/iP+EwYTBhMGI/4j/iP+EwYTBhMGI/4j/iP+EwYTBhMGI/4j/iP+I/4TBhMGEwYj/iP+I/4j/", "UklGRkgAAABXQVZFZm10IBIAAAABAAEAQB8AAIA+AAACABAAAABkYXRhIgAAAITBhMGEwYTBhMGEwYTBhMGI/4j/iP+I/4j/iP+I/4j/iP8=" ];
 
