@@ -43,7 +43,6 @@ var Digger;
         Direction[Direction["left"] = 1] = "left";
         Direction[Direction["right"] = 2] = "right";
         Direction[Direction["up"] = 3] = "up";
-
         Direction[Direction["down"] = 4] = "down";
     })(Digger.Direction || (Digger.Direction = {}));
     var Direction = Digger.Direction;
@@ -198,6 +197,7 @@ var Digger;
         Game.prototype.paint = function () {
             var blink = ((this._blink + 4) % 6);
 
+            // update statusbar
             this._context.fillStyle = "#920205";
             this.drawText(9 * 8, 8, this.formatNumber(this._room + 1, 2));
             this.drawText(9 * 8, 16, this.formatNumber(this._lives, 2));
@@ -489,7 +489,6 @@ var Digger;
         Key[Key["right"] = 1] = "right";
         Key[Key["up"] = 2] = "up";
         Key[Key["down"] = 3] = "down";
-
         Key[Key["reset"] = 4] = "reset";
     })(Digger.Key || (Digger.Key = {}));
     var Key = Digger.Key;
@@ -591,6 +590,7 @@ var Digger;
                 }
             }
 
+            // reset sound state
             this._soundTable = [false, false, false];
         };
 
@@ -755,6 +755,7 @@ var Digger;
                     }
                 }
 
+                // animate player
                 this._player.animate();
             }
             return false;
@@ -1230,7 +1231,6 @@ var Digger;
     (function (Sound) {
         Sound[Sound["diamond"] = 0] = "diamond";
         Sound[Sound["stone"] = 1] = "stone";
-
         Sound[Sound["step"] = 2] = "step";
     })(Digger.Sound || (Digger.Sound = {}));
     var Sound = Digger.Sound;
@@ -1253,7 +1253,6 @@ var Digger;
         Sprite[Sprite["exit"] = 12] = "exit";
         Sprite[Sprite["buffer"] = 13] = "buffer";
         Sprite[Sprite["changer"] = 14] = "changer";
-
         Sprite[Sprite["ghost90R"] = 15] = "ghost90R";
     })(Digger.Sprite || (Digger.Sprite = {}));
     var Sprite = Digger.Sprite;
