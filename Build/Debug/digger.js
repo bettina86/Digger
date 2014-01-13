@@ -114,7 +114,7 @@ var Digger;
         Game.prototype.addKey = function (key) {
             if (key < 4) {
                 this._keys[key] = true;
-            } else if (key == Digger.Key.reset) {
+            } else if (key == 4 /* reset */) {
                 this._lives--;
                 if (this._lives >= 0) {
                     this.loadLevel();
@@ -367,16 +367,16 @@ var Digger;
         InputHandler.prototype.keyUp = function (e) {
             switch (e.keyCode) {
                 case 37:
-                    this._game.removeKey(Digger.Key.left);
+                    this._game.removeKey(0 /* left */);
                     break;
                 case 39:
-                    this._game.removeKey(Digger.Key.right);
+                    this._game.removeKey(1 /* right */);
                     break;
                 case 38:
-                    this._game.removeKey(Digger.Key.up);
+                    this._game.removeKey(2 /* up */);
                     break;
                 case 40:
-                    this._game.removeKey(Digger.Key.down);
+                    this._game.removeKey(3 /* down */);
                     break;
             }
         };
@@ -385,23 +385,23 @@ var Digger;
             switch (e.keyCode) {
                 case 37:
                     this.stopEvent(e);
-                    this._game.addKey(Digger.Key.left);
+                    this._game.addKey(0 /* left */);
                     break;
                 case 39:
                     this.stopEvent(e);
-                    this._game.addKey(Digger.Key.right);
+                    this._game.addKey(1 /* right */);
                     break;
                 case 38:
                     this.stopEvent(e);
-                    this._game.addKey(Digger.Key.up);
+                    this._game.addKey(2 /* up */);
                     break;
                 case 40:
                     this.stopEvent(e);
-                    this._game.addKey(Digger.Key.down);
+                    this._game.addKey(3 /* down */);
                     break;
                 case 27:
                     this.stopEvent(e);
-                    this._game.addKey(Digger.Key.reset);
+                    this._game.addKey(4 /* reset */);
                     break;
                 case 8:
                 case 36:
@@ -411,7 +411,7 @@ var Digger;
                 default:
                     if (!this._game.isPlayerAlive()) {
                         this.stopEvent(e);
-                        this._game.addKey(Digger.Key.reset);
+                        this._game.addKey(4 /* reset */);
                     }
                     break;
             }
@@ -427,7 +427,7 @@ var Digger;
             if (e.touches.length > 3) {
                 this._game.nextLevel();
             } else if ((e.touches.length > 2) || (!this._game.isPlayerAlive())) {
-                this._game.addKey(Digger.Key.reset);
+                this._game.addKey(4 /* reset */);
             } else {
                 for (var i = 0; i < e.touches.length; i++) {
                     this._touchPosition = new Digger.Position(e.touches[i].pageX, e.touches[i].pageY);
@@ -443,17 +443,17 @@ var Digger;
                     var y = e.touches[i].pageY;
                     var direction = null;
                     if ((this._touchPosition.x - x) > 20) {
-                        direction = Digger.Key.left;
+                        direction = 0 /* left */;
                     } else if ((this._touchPosition.x - x) < -20) {
-                        direction = Digger.Key.right;
+                        direction = 1 /* right */;
                     } else if ((this._touchPosition.y - y) > 20) {
-                        direction = Digger.Key.up;
+                        direction = 2 /* up */;
                     } else if ((this._touchPosition.y - y) < -20) {
-                        direction = Digger.Key.down;
+                        direction = 3 /* down */;
                     }
                     if (direction !== null) {
                         this._touchPosition = new Digger.Position(x, y);
-                        for (var i = Digger.Key.left; i <= Digger.Key.down; i++) {
+                        for (var i = 0 /* left */; i <= 3 /* down */; i++) {
                             if (direction == i) {
                                 this._game.addKey(i);
                             } else {
@@ -468,10 +468,10 @@ var Digger;
         InputHandler.prototype.touchEnd = function (e) {
             e.preventDefault();
             this._touchPosition = null;
-            this._game.removeKey(Digger.Key.left);
-            this._game.removeKey(Digger.Key.right);
-            this._game.removeKey(Digger.Key.up);
-            this._game.removeKey(Digger.Key.down);
+            this._game.removeKey(0 /* left */);
+            this._game.removeKey(1 /* right */);
+            this._game.removeKey(2 /* up */);
+            this._game.removeKey(3 /* down */);
         };
 
         InputHandler.prototype.stopEvent = function (e) {
@@ -521,7 +521,7 @@ var Digger;
             }
 
             this._player = new Digger.Player(new Digger.Position(reader.readByte(), reader.readByte() - 2));
-            this._map[this._player.position.x][this._player.position.y] = Digger.Sprite.player;
+            this._map[this._player.position.x][this._player.position.y] = 10 /* player */;
             this._diamonds = reader.readByte();
             this._diamonds = (this._diamonds >> 4) * 10 + (this._diamonds & 0x0f);
 
@@ -533,10 +533,10 @@ var Digger;
             this._ghosts = [];
             for (var y = 0; y < 14; y++) {
                 for (var x = 0; x < 20; x++) {
-                    if ((this._map[x][y] === Digger.Sprite.ghost90L) || (this._map[x][y] === Digger.Sprite.ghost90R) || (this._map[x][y] === Digger.Sprite.ghost90LR) || (this._map[x][y] === Digger.Sprite.ghost180)) {
+                    if ((this._map[x][y] === 7 /* ghost90L */) || (this._map[x][y] === 15 /* ghost90R */) || (this._map[x][y] === 11 /* ghost90LR */) || (this._map[x][y] === 3 /* ghost180 */)) {
                         var info = ((index & 1) !== 0) ? (ghostData[index >> 1] & 0x0f) : (ghostData[index >> 1] >> 4);
-                        var direction = (info < 4) ? [Digger.Direction.down, Digger.Direction.up, Digger.Direction.right, Digger.Direction.left][info] : Digger.Direction.none;
-                        var lastTurn = ((index & 1) !== 0) ? Digger.Direction.right : Digger.Direction.left;
+                        var direction = (info < 4) ? [4 /* down */, 3 /* up */, 2 /* right */, 1 /* left */][info] : 0 /* none */;
+                        var lastTurn = ((index & 1) !== 0) ? 2 /* right */ : 1 /* left */;
                         this._ghosts.push(new Digger.Ghost(new Digger.Position(x, y), this._map[x][y], direction, lastTurn));
                         index++;
                     }
@@ -584,8 +584,8 @@ var Digger;
         Level.prototype.update = function () {
             for (var y = 13; y >= 0; y--) {
                 for (var x = 19; x >= 0; x--) {
-                    if (this._map[x][y] === Digger.Sprite.buffer) {
-                        this._map[x][y] = Digger.Sprite.nothing;
+                    if (this._map[x][y] === 13 /* buffer */) {
+                        this._map[x][y] = 0 /* nothing */;
                     }
                 }
             }
@@ -601,27 +601,27 @@ var Digger;
         Level.prototype.move = function () {
             for (var y = 13; y >= 0; y--) {
                 for (var x = 19; x >= 0; x--) {
-                    if ((this._map[x][y] === Digger.Sprite.stone) || (this._map[x][y] === Digger.Sprite.diamond) || (this._map[x][y] === Digger.Sprite.uvstone)) {
+                    if ((this._map[x][y] === 1 /* stone */) || (this._map[x][y] === 5 /* diamond */) || (this._map[x][y] === 9 /* uvstone */)) {
                         var dx = x;
                         var dy = y;
-                        if (this._map[x][y + 1] === Digger.Sprite.nothing) {
+                        if (this._map[x][y + 1] === 0 /* nothing */) {
                             dy = y + 1;
                         } else {
-                            if ((this._map[x][y + 1] === Digger.Sprite.stone) || (this._map[x][y + 1] === Digger.Sprite.diamond)) {
-                                if ((this._map[x - 1][y + 1] === Digger.Sprite.nothing) && (this._map[x - 1][y] === Digger.Sprite.nothing)) {
+                            if ((this._map[x][y + 1] === 1 /* stone */) || (this._map[x][y + 1] === 5 /* diamond */)) {
+                                if ((this._map[x - 1][y + 1] === 0 /* nothing */) && (this._map[x - 1][y] === 0 /* nothing */)) {
                                     dx = x - 1;
                                     dy = y + 1;
-                                } else if ((this._map[x + 1][y + 1] === Digger.Sprite.nothing) && (this._map[x + 1][y] === Digger.Sprite.nothing)) {
+                                } else if ((this._map[x + 1][y + 1] === 0 /* nothing */) && (this._map[x + 1][y] === 0 /* nothing */)) {
                                     dx = x + 1;
                                     dy = y + 1;
                                 }
                             }
-                            if ((this._map[x][y + 1] === Digger.Sprite.changer) && ((this._map[x][y] === Digger.Sprite.stone) || (this._map[x][y] === Digger.Sprite.uvstone)) && (this._map[x][y + 2] === Digger.Sprite.nothing)) {
+                            if ((this._map[x][y + 1] === 14 /* changer */) && ((this._map[x][y] === 1 /* stone */) || (this._map[x][y] === 9 /* uvstone */)) && (this._map[x][y + 2] === 0 /* nothing */)) {
                                 dy = y + 2;
                             }
                         }
                         if ((dx != x) || (dy != y)) {
-                            this._map[dx][dy] = Digger.Sprite.marker;
+                            this._map[dx][dy] = 8 /* marker */;
                         }
                     }
                 }
@@ -629,38 +629,38 @@ var Digger;
 
             for (var y = 13; y >= 0; y--) {
                 for (var x = 19; x >= 0; x--) {
-                    if ((this._map[x][y] === Digger.Sprite.stone) || (this._map[x][y] === Digger.Sprite.diamond) || (this._map[x][y] === Digger.Sprite.uvstone)) {
+                    if ((this._map[x][y] === 1 /* stone */) || (this._map[x][y] === 5 /* diamond */) || (this._map[x][y] === 9 /* uvstone */)) {
                         var dx = x;
                         var dy = y;
-                        if (this._map[x][y + 1] === Digger.Sprite.marker) {
+                        if (this._map[x][y + 1] === 8 /* marker */) {
                             dy = y + 1;
                         } else {
-                            if ((this._map[x][y + 1] === Digger.Sprite.stone) || (this._map[x][y + 1] === Digger.Sprite.diamond) || (this._map[x][y + 1] === Digger.Sprite.nothing)) {
-                                if ((this._map[x - 1][y + 1] === Digger.Sprite.marker) && ((this._map[x - 1][y] === Digger.Sprite.nothing) || (this._map[x - 1][y] === Digger.Sprite.marker))) {
+                            if ((this._map[x][y + 1] === 1 /* stone */) || (this._map[x][y + 1] === 5 /* diamond */) || (this._map[x][y + 1] === 0 /* nothing */)) {
+                                if ((this._map[x - 1][y + 1] === 8 /* marker */) && ((this._map[x - 1][y] === 0 /* nothing */) || (this._map[x - 1][y] === 8 /* marker */))) {
                                     dx = x - 1;
                                     dy = y + 1;
-                                } else if ((this._map[x + 1][y + 1] === Digger.Sprite.marker) && ((this._map[x + 1][y] === Digger.Sprite.nothing) || (this._map[x + 1][y] === Digger.Sprite.marker))) {
+                                } else if ((this._map[x + 1][y + 1] === 8 /* marker */) && ((this._map[x + 1][y] === 0 /* nothing */) || (this._map[x + 1][y] === 8 /* marker */))) {
                                     dx = x + 1;
                                     dy = y + 1;
                                 }
                             }
-                            if ((this._map[x][y + 1] === Digger.Sprite.changer) && ((this._map[x][y] === Digger.Sprite.stone) || (this._map[x][y] === Digger.Sprite.uvstone)) && (this._map[x][y + 2] === Digger.Sprite.marker)) {
+                            if ((this._map[x][y + 1] === 14 /* changer */) && ((this._map[x][y] === 1 /* stone */) || (this._map[x][y] === 9 /* uvstone */)) && (this._map[x][y + 2] === 8 /* marker */)) {
                                 dy = y + 2;
                             }
                         }
                         if ((dx != x) || (dy != y)) {
                             if ((dy - y) === 2) {
-                                this._map[dx][dy] = Digger.Sprite.diamond;
+                                this._map[dx][dy] = 5 /* diamond */;
                             } else {
                                 this._map[dx][dy] = this._map[x][y];
-                                if (this._map[dx][dy] === Digger.Sprite.uvstone) {
-                                    this._map[dx][dy] = Digger.Sprite.stone;
+                                if (this._map[dx][dy] === 9 /* uvstone */) {
+                                    this._map[dx][dy] = 1 /* stone */;
                                 }
                             }
-                            this._map[x][y] = Digger.Sprite.nothing;
+                            this._map[x][y] = 0 /* nothing */;
 
-                            if ((this._map[dx][dy + 1] === Digger.Sprite.stone) || (this._map[dx][dy + 1] === Digger.Sprite.diamond) || (this._map[dx][dy + 1] === Digger.Sprite.wall) || (this.isGhost(dx, dy + 1))) {
-                                this._soundTable[Digger.Sound.stone] = true;
+                            if ((this._map[dx][dy + 1] === 1 /* stone */) || (this._map[dx][dy + 1] === 5 /* diamond */) || (this._map[dx][dy + 1] === 6 /* wall */) || (this.isGhost(dx, dy + 1))) {
+                                this._soundTable[1 /* stone */] = true;
                             }
 
                             if (this.isPlayer(dx, dy + 1)) {
@@ -688,63 +688,63 @@ var Digger;
 
         Level.prototype.movePlayer = function (keys) {
             if (this._player.alive) {
-                this._player.direction = Digger.Direction.none;
+                this._player.direction = 0 /* none */;
                 var p = this._player.position.clone();
                 var d = p.clone();
                 var z = d.clone();
-                if (keys[Digger.Key.left]) {
+                if (keys[0 /* left */]) {
                     z.x--;
-                    this._player.direction = Digger.Direction.left;
+                    this._player.direction = 1 /* left */;
                 } else {
                     this._player.stone[0] = false;
-                    if (keys[Digger.Key.right]) {
+                    if (keys[1 /* right */]) {
                         z.x++;
-                        this._player.direction = Digger.Direction.right;
+                        this._player.direction = 2 /* right */;
                     } else {
                         this._player.stone[1] = false;
-                        if (keys[Digger.Key.up]) {
+                        if (keys[2 /* up */]) {
                             z.y--;
-                            this._player.direction = Digger.Direction.up;
-                        } else if (keys[Digger.Key.down]) {
+                            this._player.direction = 3 /* up */;
+                        } else if (keys[3 /* down */]) {
                             z.y++;
-                            this._player.direction = Digger.Direction.down;
+                            this._player.direction = 4 /* down */;
                         }
                     }
                 }
                 if (!d.equals(z)) {
-                    if (this._map[z.x][z.y] === Digger.Sprite.nothing) {
+                    if (this._map[z.x][z.y] === 0 /* nothing */) {
                         this.placePlayer(d.x, d.y);
                     }
-                    if (this._map[z.x][z.y] === Digger.Sprite.diamond) {
+                    if (this._map[z.x][z.y] === 5 /* diamond */) {
                         this._collected += 1;
                         this._score += 3;
-                        this._soundTable[Digger.Sound.diamond] = true;
+                        this._soundTable[0 /* diamond */] = true;
                     }
-                    if (this._map[z.x][z.y] === Digger.Sprite.stone) {
-                        if ((z.x > d.x) && (this._map[z.x + 1][z.y] === Digger.Sprite.nothing)) {
+                    if (this._map[z.x][z.y] === 1 /* stone */) {
+                        if ((z.x > d.x) && (this._map[z.x + 1][z.y] === 0 /* nothing */)) {
                             if (this._player.stone[1]) {
                                 this._map[d.x + 2][d.y] = this._map[d.x + 1][d.y];
-                                this._map[d.x + 1][d.y] = Digger.Sprite.nothing;
+                                this._map[d.x + 1][d.y] = 0 /* nothing */;
                             }
                             this._player.stone[1] = !this._player.stone[1];
                         }
 
-                        if ((z.x < d.x) && (this._map[z.x - 1][z.y] === Digger.Sprite.nothing)) {
+                        if ((z.x < d.x) && (this._map[z.x - 1][z.y] === 0 /* nothing */)) {
                             if (this._player.stone[0]) {
                                 this._map[d.x - 2][d.y] = this._map[d.x - 1][d.y];
-                                this._map[d.x - 1][d.y] = Digger.Sprite.nothing;
+                                this._map[d.x - 1][d.y] = 0 /* nothing */;
                             }
                             this._player.stone[0] = !this._player.stone[0];
                         }
                     }
 
-                    if ((this._map[z.x][z.y] === Digger.Sprite.nothing) || (this._map[z.x][z.y] === Digger.Sprite.ground) || (this._map[z.x][z.y] === Digger.Sprite.diamond)) {
+                    if ((this._map[z.x][z.y] === 0 /* nothing */) || (this._map[z.x][z.y] === 2 /* ground */) || (this._map[z.x][z.y] === 5 /* diamond */)) {
                         this.placePlayer(z.x, z.y);
-                        this._map[d.x][d.y] = Digger.Sprite.buffer;
-                        this._soundTable[Digger.Sound.step] = true;
+                        this._map[d.x][d.y] = 13 /* buffer */;
+                        this._soundTable[2 /* step */] = true;
                     }
 
-                    if ((this._map[z.x][z.y] === Digger.Sprite.exit) || (this._map[z.x][z.y] === Digger.Sprite.uvexit)) {
+                    if ((this._map[z.x][z.y] === 12 /* exit */) || (this._map[z.x][z.y] === 4 /* uvexit */)) {
                         if (this._collected >= this._diamonds) {
                             return true;
                         }
@@ -762,86 +762,86 @@ var Digger;
         };
 
         Level.prototype.isPlayer = function (x, y) {
-            return (this._map[x][y] === Digger.Sprite.player);
+            return (this._map[x][y] === 10 /* player */);
         };
 
         Level.prototype.placePlayer = function (x, y) {
-            this._map[x][y] = Digger.Sprite.player;
+            this._map[x][y] = 10 /* player */;
             this._player.position.x = x;
             this._player.position.y = y;
         };
 
         Level.prototype.isGhost = function (x, y) {
-            return (this._map[x][y] == Digger.Sprite.ghost90L) || (this._map[x][y] == Digger.Sprite.ghost90R) || (this._map[x][y] == Digger.Sprite.ghost90LR) || (this._map[x][y] == Digger.Sprite.ghost180);
+            return (this._map[x][y] == 7 /* ghost90L */) || (this._map[x][y] == 15 /* ghost90R */) || (this._map[x][y] == 11 /* ghost90LR */) || (this._map[x][y] == 3 /* ghost180 */);
         };
 
         Level.prototype.moveGhost = function (ghost) {
             if (ghost.alive) {
                 var p = ghost.position.clone();
                 var w = [p.clone(), p.clone(), p.clone(), p.clone()];
-                if ((ghost.type === Digger.Sprite.ghost180) || (ghost.type === Digger.Sprite.ghost90L) || (ghost.type === Digger.Sprite.ghost90R)) {
-                    if (ghost.type === Digger.Sprite.ghost180) {
-                        if (ghost.direction === Digger.Direction.left) {
+                if ((ghost.type === 3 /* ghost180 */) || (ghost.type === 7 /* ghost90L */) || (ghost.type === 15 /* ghost90R */)) {
+                    if (ghost.type === 3 /* ghost180 */) {
+                        if (ghost.direction === 1 /* left */) {
                             w[0].x--;
                             w[1].x++;
                         }
-                        if (ghost.direction === Digger.Direction.right) {
+                        if (ghost.direction === 2 /* right */) {
                             w[0].x++;
                             w[1].x--;
                         }
-                        if (ghost.direction === Digger.Direction.up) {
+                        if (ghost.direction === 3 /* up */) {
                             w[0].y--;
                             w[1].y++;
                         }
-                        if (ghost.direction === Digger.Direction.down) {
+                        if (ghost.direction === 4 /* down */) {
                             w[0].y++;
                             w[1].y--;
                         }
-                    } else if (ghost.type === Digger.Sprite.ghost90L) {
-                        if (ghost.direction === Digger.Direction.left) {
+                    } else if (ghost.type === 7 /* ghost90L */) {
+                        if (ghost.direction === 1 /* left */) {
                             w[0].x--;
                             w[1].y++;
                             w[2].y--;
                             w[3].x++;
                         }
-                        if (ghost.direction === Digger.Direction.right) {
+                        if (ghost.direction === 2 /* right */) {
                             w[0].x++;
                             w[1].y--;
                             w[2].y++;
                             w[3].x--;
                         }
-                        if (ghost.direction === Digger.Direction.up) {
+                        if (ghost.direction === 3 /* up */) {
                             w[0].y--;
                             w[1].x--;
                             w[2].x++;
                             w[3].y++;
                         }
-                        if (ghost.direction === Digger.Direction.down) {
+                        if (ghost.direction === 4 /* down */) {
                             w[0].y++;
                             w[1].x++;
                             w[2].x--;
                             w[3].y--;
                         }
-                    } else if (ghost.type === Digger.Sprite.ghost90R) {
-                        if (ghost.direction === Digger.Direction.left) {
+                    } else if (ghost.type === 15 /* ghost90R */) {
+                        if (ghost.direction === 1 /* left */) {
                             w[0].x--;
                             w[1].y--;
                             w[2].y++;
                             w[3].x++;
                         }
-                        if (ghost.direction === Digger.Direction.right) {
+                        if (ghost.direction === 2 /* right */) {
                             w[0].x++;
                             w[1].y++;
                             w[2].y--;
                             w[3].x--;
                         }
-                        if (ghost.direction === Digger.Direction.up) {
+                        if (ghost.direction === 3 /* up */) {
                             w[0].y--;
                             w[1].x++;
                             w[2].x--;
                             w[3].y++;
                         }
-                        if (ghost.direction === Digger.Direction.down) {
+                        if (ghost.direction === 4 /* down */) {
                             w[0].y++;
                             w[1].x--;
                             w[2].x++;
@@ -854,60 +854,60 @@ var Digger;
                             if (this.isPlayer(d.x, d.y)) {
                                 this._player.kill();
                             }
-                            if (this._map[d.x][d.y] === Digger.Sprite.nothing) {
+                            if (this._map[d.x][d.y] === 0 /* nothing */) {
                                 if (d.x < p.x) {
-                                    ghost.direction = Digger.Direction.left;
+                                    ghost.direction = 1 /* left */;
                                 }
                                 if (d.x > p.x) {
-                                    ghost.direction = Digger.Direction.right;
+                                    ghost.direction = 2 /* right */;
                                 }
                                 if (d.y < p.y) {
-                                    ghost.direction = Digger.Direction.up;
+                                    ghost.direction = 3 /* up */;
                                 }
                                 if (d.y > p.y) {
-                                    ghost.direction = Digger.Direction.down;
+                                    ghost.direction = 4 /* down */;
                                 }
                                 this.placeGhost(d.x, d.y, ghost);
-                                this._map[p.x][p.y] = Digger.Sprite.nothing;
+                                this._map[p.x][p.y] = 0 /* nothing */;
                                 return;
                             }
                         }
                     }
-                } else if (ghost.type === Digger.Sprite.ghost90LR) {
-                    if (ghost.direction === Digger.Direction.left) {
+                } else if (ghost.type === 11 /* ghost90LR */) {
+                    if (ghost.direction === 1 /* left */) {
                         w[0].x--;
                         w[3].x++;
-                        if (ghost.lastTurn === Digger.Direction.left) {
+                        if (ghost.lastTurn === 1 /* left */) {
                             w[1].y--;
                             w[2].y++;
                         } else {
                             w[1].y++;
                             w[2].y--;
                         }
-                    } else if (ghost.direction === Digger.Direction.right) {
+                    } else if (ghost.direction === 2 /* right */) {
                         w[0].x++;
                         w[3].x--;
-                        if (ghost.lastTurn === Digger.Direction.left) {
+                        if (ghost.lastTurn === 1 /* left */) {
                             w[1].y++;
                             w[2].y--;
                         } else {
                             w[1].y--;
                             w[2].y++;
                         }
-                    } else if (ghost.direction === Digger.Direction.up) {
+                    } else if (ghost.direction === 3 /* up */) {
                         w[0].y--;
                         w[3].y++;
-                        if (ghost.lastTurn === Digger.Direction.left) {
+                        if (ghost.lastTurn === 1 /* left */) {
                             w[1].x++;
                             w[2].x--;
                         } else {
                             w[1].x--;
                             w[2].x++;
                         }
-                    } else if (ghost.direction === Digger.Direction.down) {
+                    } else if (ghost.direction === 4 /* down */) {
                         w[0].y++;
                         w[3].y--;
-                        if (ghost.lastTurn === Digger.Direction.left) {
+                        if (ghost.lastTurn === 1 /* left */) {
                             w[1].x--;
                             w[2].x++;
                         } else {
@@ -921,51 +921,51 @@ var Digger;
                             if (this.isPlayer(d.x, d.y)) {
                                 this._player.kill();
                             }
-                            if (this._map[d.x][d.y] === Digger.Sprite.nothing) {
+                            if (this._map[d.x][d.y] === 0 /* nothing */) {
                                 var lastDirection = ghost.direction;
                                 if (d.x < p.x) {
-                                    ghost.direction = Digger.Direction.left;
+                                    ghost.direction = 1 /* left */;
                                 }
                                 if (d.x > p.x) {
-                                    ghost.direction = Digger.Direction.right;
+                                    ghost.direction = 2 /* right */;
                                 }
                                 if (d.y < p.y) {
-                                    ghost.direction = Digger.Direction.up;
+                                    ghost.direction = 3 /* up */;
                                 }
                                 if (d.y > p.y) {
-                                    ghost.direction = Digger.Direction.down;
+                                    ghost.direction = 4 /* down */;
                                 }
-                                if (lastDirection === Digger.Direction.left) {
-                                    if (ghost.direction === Digger.Direction.down) {
-                                        ghost.lastTurn = Digger.Direction.left;
+                                if (lastDirection === 1 /* left */) {
+                                    if (ghost.direction === 4 /* down */) {
+                                        ghost.lastTurn = 1 /* left */;
                                     }
-                                    if (ghost.direction === Digger.Direction.up) {
-                                        ghost.lastTurn = Digger.Direction.right;
+                                    if (ghost.direction === 3 /* up */) {
+                                        ghost.lastTurn = 2 /* right */;
                                     }
-                                } else if (lastDirection === Digger.Direction.right) {
-                                    if (ghost.direction === Digger.Direction.down) {
-                                        ghost.lastTurn = Digger.Direction.right;
+                                } else if (lastDirection === 2 /* right */) {
+                                    if (ghost.direction === 4 /* down */) {
+                                        ghost.lastTurn = 2 /* right */;
                                     }
-                                    if (ghost.direction === Digger.Direction.up) {
-                                        ghost.lastTurn = Digger.Direction.left;
+                                    if (ghost.direction === 3 /* up */) {
+                                        ghost.lastTurn = 1 /* left */;
                                     }
-                                } else if (lastDirection === Digger.Direction.up) {
-                                    if (ghost.direction === Digger.Direction.left) {
-                                        ghost.lastTurn = Digger.Direction.left;
+                                } else if (lastDirection === 3 /* up */) {
+                                    if (ghost.direction === 1 /* left */) {
+                                        ghost.lastTurn = 1 /* left */;
                                     }
-                                    if (ghost.direction === Digger.Direction.right) {
-                                        ghost.lastTurn = Digger.Direction.right;
+                                    if (ghost.direction === 2 /* right */) {
+                                        ghost.lastTurn = 2 /* right */;
                                     }
-                                } else if (lastDirection === Digger.Direction.down) {
-                                    if (ghost.direction === Digger.Direction.left) {
-                                        ghost.lastTurn = Digger.Direction.right;
+                                } else if (lastDirection === 4 /* down */) {
+                                    if (ghost.direction === 1 /* left */) {
+                                        ghost.lastTurn = 2 /* right */;
                                     }
-                                    if (ghost.direction === Digger.Direction.right) {
-                                        ghost.lastTurn = Digger.Direction.left;
+                                    if (ghost.direction === 2 /* right */) {
+                                        ghost.lastTurn = 1 /* left */;
                                     }
                                 }
                                 this.placeGhost(d.x, d.y, ghost);
-                                this._map[p.x][p.y] = Digger.Sprite.nothing;
+                                this._map[p.x][p.y] = 0 /* nothing */;
                                 return;
                             }
                         }
@@ -993,7 +993,7 @@ var Digger;
                                     this.ghost(dx, dy).kill();
                                     this._score += 99;
                                 }
-                                this._map[dx][dy] = Digger.Sprite.nothing;
+                                this._map[dx][dy] = 0 /* nothing */;
                             }
                         }
                     }
@@ -1015,30 +1015,30 @@ var Digger;
 
         Level.prototype.getSpriteIndex = function (x, y, blink) {
             switch (this._map[x][y]) {
-                case Digger.Sprite.nothing:
-                case Digger.Sprite.uvexit:
-                case Digger.Sprite.buffer:
-                case Digger.Sprite.marker:
-                case Digger.Sprite.uvstone:
+                case 0 /* nothing */:
+                case 4 /* uvexit */:
+                case 13 /* buffer */:
+                case 8 /* marker */:
+                case 9 /* uvstone */:
                     return 0;
-                case Digger.Sprite.stone:
+                case 1 /* stone */:
                     return 1;
-                case Digger.Sprite.ground:
+                case 2 /* ground */:
                     return 2;
-                case Digger.Sprite.diamond:
+                case 5 /* diamond */:
                     return 13 - ((blink + 4) % 6);
-                case Digger.Sprite.wall:
+                case 6 /* wall */:
                     return 14;
-                case Digger.Sprite.exit:
+                case 12 /* exit */:
                     return 32;
-                case Digger.Sprite.changer:
+                case 14 /* changer */:
                     return 33;
-                case Digger.Sprite.ghost90L:
-                case Digger.Sprite.ghost90R:
-                case Digger.Sprite.ghost90LR:
-                case Digger.Sprite.ghost180:
+                case 7 /* ghost90L */:
+                case 15 /* ghost90R */:
+                case 11 /* ghost90LR */:
+                case 3 /* ghost180 */:
                     return this.ghost(x, y).imageIndex;
-                case Digger.Sprite.player:
+                case 10 /* player */:
                     if ((x == this._player.position.x) && (y == this._player.position.y)) {
                         return this._player.imageIndex;
                     }
@@ -1109,13 +1109,12 @@ Digger.Game.prototype.levelData = [
     "ZmZmZmZmZmZmZmIiIiYRERYCIqZiEhImEREWAhImYSEhJhERFgIhJmISEiARERACIiZiIiImEWEWMwAGYDAAJmYWZiISJmIiIiIiIiIiIiZiIiIiIhISEhImZmbu7mIubmLmJmAAAABgADAAAAZlAAAAYAAAADAGZVAAAGAAMFAAxmZmZmZmZmZmZmZ1IG3AbRIDIBIiIgAAAAAA",
     "ZmZmZmZmZmZmZmEREWISEhEgCQZhERFiISEhIAkGYRERYRISESAJBmEREWIiIiIgCQZmERZiIiIiKgCWZmJmAzAAAiIiJmIiImIiIiIiIiZiIiJmZubmIiImZm7uYAawBlVVVmAAAAsGBrZRURZgAAALtjYGFVVWYAAAAAYABlFVxmZmZmZmZmZmZmZ2wG1gbg8HQCIAAAAAAAAA",
     "ZmZmZmZmZmZmZmIRwiIioiIiJlZiEWISEiISERZWYhFiEhIhIhEWVmIhJmZmIiIiJlZiIiYiIiADAAZWZiImJmViIiImVmIiJiZWYAMABlZgMAYiImZmZiFmYmZmYm7u7iICJmERESJgYAIiAiZu7u7iYGBiYgYmYiIiImBgsLACVmZmZmZmZmZmZmZ3YG4AbwoDJyIgAAAAAAAA",
-    "ZmZmZmZmZmZmZmIiIhIiIqEiIhZhERIhESEiERImZVVQJVIlIlVbBmUiKyVRJSJSVSZlISAlJSUiURUWZVUgJSUlIlEVJmUiKyUiVSJRFRZlILAlIFUiURUmZREgJSslIlJVBmVVUCUABSJVUrZu7u7u7u7u7u7mbAAAAAAAAAAAxmZmZmZmZmZmZmaAQHAAAAwDdQAAAAAAAAAA"
-];
+    "ZmZmZmZmZmZmZmIiIhIiIqEiIhZhERIhESEiERImZVVQJVIlIlVbBmUiKyVRJSJSVSZlISAlJSUiURUWZVUgJSUlIlEVJmUiKyUiVSJRFRZlILAlIFUiURUmZREgJSslIlJVBmVVUCUABSJVUrZu7u7u7u7u7u7mbAAAAAAAAAAAxmZmZmZmZmZmZmaAQHAAAAwDdQAAAAAAAAAA"];
 var Digger;
 (function (Digger) {
     var Player = (function () {
         function Player(position) {
-            this._direction = Digger.Direction.none;
+            this._direction = 0 /* none */;
             this._stone = [false, false];
             this._step = 0;
             this._alive = true;
@@ -1165,14 +1164,14 @@ var Digger;
             this._step++;
 
             switch (this._direction) {
-                case Digger.Direction.left:
-                case Digger.Direction.right:
+                case 1 /* left */:
+                case 2 /* right */:
                     if (this._step >= 6) {
                         this._step = 0;
                     }
                     break;
-                case Digger.Direction.up:
-                case Digger.Direction.down:
+                case 3 /* up */:
+                case 4 /* down */:
                     if (this._step >= 2) {
                         this._step = 0;
                     }
@@ -1188,13 +1187,13 @@ var Digger;
         Object.defineProperty(Player.prototype, "imageIndex", {
             get: function () {
                 if (this._alive) {
-                    if ((this._direction === Digger.Direction.left) && (this._step < 6)) {
+                    if ((this._direction === 1 /* left */) && (this._step < 6)) {
                         return [16, 17, 18, 19, 18, 17][this._step];
-                    } else if ((this._direction === Digger.Direction.right) && (this._step < 6)) {
+                    } else if ((this._direction === 2 /* right */) && (this._step < 6)) {
                         return [20, 21, 22, 23, 22, 21][this._step];
-                    } else if ((this._direction === Digger.Direction.up) && (this._step < 2)) {
+                    } else if ((this._direction === 3 /* up */) && (this._step < 2)) {
                         return [24, 25][this._step];
-                    } else if ((this._direction === Digger.Direction.down) && (this._step < 2)) {
+                    } else if ((this._direction === 4 /* down */) && (this._step < 2)) {
                         return [26, 27][this._step];
                     }
                     return [15, 15, 15, 15, 15, 15, 15, 15, 28, 28, 15, 15, 28, 28, 15, 15, 15, 15, 15, 15, 29, 29, 30, 30, 29, 29, 15, 15, 15, 15][this._step];
