@@ -16,7 +16,8 @@ var Digger;
                     var index = this._alphabet.indexOf(ch);
                     if (index < 64) {
                         this._bits = (this._bits << 6) | index;
-                    } else {
+                    }
+                    else {
                         this._bits <<= 6;
                         tailBits += 6;
                     }
@@ -56,14 +57,12 @@ var Digger;
             this._soundTable = [];
             this._canvas = canvas;
             this._canvas.focus();
-
             this._context = canvas.getContext("2d");
             this._context.fillStyle = "#00ffff";
             this._context.fillRect(0, 2, 320, 4);
             this._context.fillRect(0, 26, 320, 4);
             this._context.fillStyle = "#920205";
             this._context.fillRect(0, 8, 320, 16);
-
             for (var i = 0; i < this.soundData.length; i++) {
                 var audio = document.createElement('audio');
                 if ((audio !== null) && (audio.canPlayType('audio/wav'))) {
@@ -73,7 +72,6 @@ var Digger;
                 }
                 this._soundTable[i] = audio;
             }
-
             var imageIndex = 0;
             var imageCount = this.imageData.length;
             var onload = function () {
@@ -82,7 +80,6 @@ var Digger;
                     _this.start();
                 }
             };
-
             for (i = 0; i < this.imageData.length; i++) {
                 var image = new Image();
                 image.onload = onload;
@@ -94,7 +91,6 @@ var Digger;
             var _this = this;
             this.drawText(0, 8, "  ROOM:     TIME:        DIAMONDS:      ");
             this.drawText(0, 16, "  LIVES:    SCORE:       COLLECTED:     ");
-
             this._screenTable = [];
             for (var x = 0; x < 20; x++) {
                 this._screenTable[x] = [];
@@ -102,41 +98,36 @@ var Digger;
                     this._screenTable[x][y] = 0;
                 }
             }
-
             this._inputHandler = new Digger.InputHandler(this._canvas, this);
             this._blink = 0;
             this.restart();
-            window.setInterval(function () {
-                return _this.interval();
-            }, 50);
+            window.setInterval(function () { return _this.interval(); }, 50);
         };
-
         Game.prototype.addKey = function (key) {
             if (key < 4) {
                 this._keys[key] = true;
-            } else if (key == 4 /* reset */) {
+            }
+            else if (key == 4 /* reset */) {
                 this._lives--;
                 if (this._lives >= 0) {
                     this.loadLevel();
-                } else {
+                }
+                else {
                     this.restart();
                 }
             }
         };
-
         Game.prototype.removeKey = function (key) {
             if (key < 4) {
                 this._keysRelease[key] = true;
             }
         };
-
         Game.prototype.restart = function () {
             this._lives = 20;
             this._score = 0;
             this._room = 0;
             this.loadLevel();
         };
-
         Game.prototype.loadLevel = function () {
             this._level = new Digger.Level(this.levelData[this._room]);
             this._keys = [false, false, false, false];
@@ -144,18 +135,15 @@ var Digger;
             this._tick = 0;
             this.paint();
         };
-
         Game.prototype.nextLevel = function () {
             if (this._room < (this.levelData.length - 1)) {
                 this._room++;
                 this.loadLevel();
             }
         };
-
         Game.prototype.isPlayerAlive = function () {
             return (this._level === null) || (this._level.isPlayerAlive);
         };
-
         Game.prototype.interval = function () {
             this._tick++;
             this._blink++;
@@ -169,13 +157,12 @@ var Digger;
                         this._keysRelease[i] = false;
                     }
                 }
-
                 this._level.update();
                 if (this._level.movePlayer(this._keys)) {
                     this.nextLevel();
-                } else {
+                }
+                else {
                     this._level.move();
-
                     for (var i = 0; i < this.soundData.length; i++) {
                         if (this._soundTable[i] && this._level.playSound(i)) {
                             if (!!this._soundTable[i].currentTime) {
@@ -188,15 +175,11 @@ var Digger;
                     }
                 }
             }
-
             this._score += this._level.updateScore();
-
             this.paint();
         };
-
         Game.prototype.paint = function () {
             var blink = ((this._blink + 4) % 6);
-
             // update statusbar
             this._context.fillStyle = "#920205";
             this.drawText(9 * 8, 8, this.formatNumber(this._room + 1, 2));
@@ -205,7 +188,6 @@ var Digger;
             this.drawText(19 * 8, 8, this.formatNumber(this._level.time, 5));
             this.drawText(36 * 8, 8, this.formatNumber(this._level.diamonds, 2));
             this.drawText(36 * 8, 16, this.formatNumber(this._level.collected, 2));
-
             for (var x = 0; x < 20; x++) {
                 for (var y = 0; y < 14; y++) {
                     var spriteIndex = this._level.getSpriteIndex(x, y, blink);
@@ -216,7 +198,6 @@ var Digger;
                 }
             }
         };
-
         Game.prototype.drawText = function (x, y, text) {
             for (var i = 0; i < text.length; i++) {
                 var index = text.charCodeAt(i) - 32;
@@ -225,7 +206,6 @@ var Digger;
                 x += 8;
             }
         };
-
         Game.prototype.formatNumber = function (value, digits) {
             var text = value.toString();
             while (text.length < digits) {
@@ -250,7 +230,6 @@ var Digger;
         Ghost.prototype.kill = function () {
             this._alive = false;
         };
-
         Object.defineProperty(Ghost.prototype, "alive", {
             get: function () {
                 return this._alive;
@@ -258,7 +237,6 @@ var Digger;
             enumerable: true,
             configurable: true
         });
-
         Object.defineProperty(Ghost.prototype, "position", {
             get: function () {
                 return this._position;
@@ -266,7 +244,6 @@ var Digger;
             enumerable: true,
             configurable: true
         });
-
         Object.defineProperty(Ghost.prototype, "type", {
             get: function () {
                 return this._type;
@@ -274,7 +251,6 @@ var Digger;
             enumerable: true,
             configurable: true
         });
-
         Object.defineProperty(Ghost.prototype, "direction", {
             get: function () {
                 return this._direction;
@@ -285,8 +261,6 @@ var Digger;
             enumerable: true,
             configurable: true
         });
-
-
         Object.defineProperty(Ghost.prototype, "lastTurn", {
             get: function () {
                 return this._lastTurn;
@@ -297,8 +271,6 @@ var Digger;
             enumerable: true,
             configurable: true
         });
-
-
         Object.defineProperty(Ghost.prototype, "imageIndex", {
             get: function () {
                 return [4, 4, 5, 6, 3][this._direction];
@@ -317,7 +289,6 @@ var Digger;
             var _this = this;
             this._canvas = canvas;
             this._game = game;
-
             this._mouseDownHandler = function (e) {
                 _this.mouseDown(e);
             };
@@ -339,16 +310,13 @@ var Digger;
             this._keyUpHandler = function (e) {
                 _this.keyUp(e);
             };
-
             this._canvas.addEventListener("touchstart", this._touchStartHandler, false);
             this._canvas.addEventListener("touchmove", this._touchMoveHandler, false);
             this._canvas.addEventListener("touchend", this._touchEndHandler, false);
             this._canvas.addEventListener("mousedown", this._mouseDownHandler, false);
-
             document.addEventListener("keydown", this._keyDownHandler, false);
             document.addEventListener("keypress", this._keyPressHandler, false);
             document.addEventListener("keyup", this._keyUpHandler, false);
-
             this._isWebKit = typeof navigator.userAgent.split("WebKit/")[1] !== "undefined";
             this._isMozilla = navigator.appVersion.indexOf('Gecko/') >= 0 || ((navigator.userAgent.indexOf("Gecko") >= 0) && !this._isWebKit && (typeof navigator.appVersion !== "undefined"));
         }
@@ -357,13 +325,11 @@ var Digger;
                 this.processKey(e, e.keyCode);
             }
         };
-
         InputHandler.prototype.keyPress = function (e) {
             if (this._isMozilla && !e.ctrlKey && !e.altKey && !e.altKey && !e.metaKey) {
                 this.processKey(e, (e.keyCode != 0) ? e.keyCode : (e.charCode === 32) ? 32 : 0);
             }
         };
-
         InputHandler.prototype.keyUp = function (e) {
             switch (e.keyCode) {
                 case 37:
@@ -380,7 +346,6 @@ var Digger;
                     break;
             }
         };
-
         InputHandler.prototype.processKey = function (e, keyCode) {
             switch (e.keyCode) {
                 case 37:
@@ -416,25 +381,24 @@ var Digger;
                     break;
             }
         };
-
         InputHandler.prototype.mouseDown = function (e) {
             e.preventDefault();
             this._canvas.focus();
         };
-
         InputHandler.prototype.touchStart = function (e) {
             e.preventDefault();
             if (e.touches.length > 3) {
                 this._game.nextLevel();
-            } else if ((e.touches.length > 2) || (!this._game.isPlayerAlive())) {
+            }
+            else if ((e.touches.length > 2) || (!this._game.isPlayerAlive())) {
                 this._game.addKey(4 /* reset */);
-            } else {
+            }
+            else {
                 for (var i = 0; i < e.touches.length; i++) {
                     this._touchPosition = new Digger.Position(e.touches[i].pageX, e.touches[i].pageY);
                 }
             }
         };
-
         InputHandler.prototype.touchMove = function (e) {
             e.preventDefault();
             for (var i = 0; i < e.touches.length; i++) {
@@ -444,11 +408,14 @@ var Digger;
                     var direction = null;
                     if ((this._touchPosition.x - x) > 20) {
                         direction = 0 /* left */;
-                    } else if ((this._touchPosition.x - x) < -20) {
+                    }
+                    else if ((this._touchPosition.x - x) < -20) {
                         direction = 1 /* right */;
-                    } else if ((this._touchPosition.y - y) > 20) {
+                    }
+                    else if ((this._touchPosition.y - y) > 20) {
                         direction = 2 /* up */;
-                    } else if ((this._touchPosition.y - y) < -20) {
+                    }
+                    else if ((this._touchPosition.y - y) < -20) {
                         direction = 3 /* down */;
                     }
                     if (direction !== null) {
@@ -456,7 +423,8 @@ var Digger;
                         for (var i = 0 /* left */; i <= 3 /* down */; i++) {
                             if (direction == i) {
                                 this._game.addKey(i);
-                            } else {
+                            }
+                            else {
                                 this._game.removeKey(i);
                             }
                         }
@@ -464,7 +432,6 @@ var Digger;
                 }
             }
         };
-
         InputHandler.prototype.touchEnd = function (e) {
             e.preventDefault();
             this._touchPosition = null;
@@ -473,7 +440,6 @@ var Digger;
             this._game.removeKey(2 /* up */);
             this._game.removeKey(3 /* down */);
         };
-
         InputHandler.prototype.stopEvent = function (e) {
             e.preventDefault();
             e.stopPropagation();
@@ -500,14 +466,11 @@ var Digger;
             this._collected = 0;
             this._time = 5000;
             this._score = 0;
-
             this._map = [];
             for (var x = 0; x < 20; x++) {
                 this._map[x] = [];
             }
-
             var reader = new Digger.Base64Reader(data);
-
             for (var y = 0; y < 14; y++) {
                 for (var x = 0; x < 10; x++) {
                     var b = reader.readByte();
@@ -515,16 +478,13 @@ var Digger;
                     this._map[x * 2][y] = b >> 4;
                 }
             }
-
             for (var i = 0; i < 5; i++) {
                 reader.readByte();
             }
-
             this._player = new Digger.Player(new Digger.Position(reader.readByte(), reader.readByte() - 2));
             this._map[this._player.position.x][this._player.position.y] = 10 /* player */;
             this._diamonds = reader.readByte();
             this._diamonds = (this._diamonds >> 4) * 10 + (this._diamonds & 0x0f);
-
             var ghostData = [];
             for (var i = 0; i < 8; i++) {
                 ghostData.push(reader.readByte());
@@ -550,7 +510,6 @@ var Digger;
             enumerable: true,
             configurable: true
         });
-
         Object.defineProperty(Level.prototype, "diamonds", {
             get: function () {
                 return this._diamonds;
@@ -558,7 +517,6 @@ var Digger;
             enumerable: true,
             configurable: true
         });
-
         Object.defineProperty(Level.prototype, "collected", {
             get: function () {
                 return this._collected;
@@ -566,7 +524,6 @@ var Digger;
             enumerable: true,
             configurable: true
         });
-
         Object.defineProperty(Level.prototype, "isPlayerAlive", {
             get: function () {
                 return this._player.alive;
@@ -574,13 +531,11 @@ var Digger;
             enumerable: true,
             configurable: true
         });
-
         Level.prototype.updateScore = function () {
             var score = this._score;
             this._score = 0;
             return score;
         };
-
         Level.prototype.update = function () {
             for (var y = 13; y >= 0; y--) {
                 for (var x = 19; x >= 0; x--) {
@@ -589,15 +544,12 @@ var Digger;
                     }
                 }
             }
-
             // reset sound state
             this._soundTable = [false, false, false];
         };
-
         Level.prototype.playSound = function (sound) {
             return this._soundTable[sound];
         };
-
         Level.prototype.move = function () {
             for (var y = 13; y >= 0; y--) {
                 for (var x = 19; x >= 0; x--) {
@@ -606,12 +558,14 @@ var Digger;
                         var dy = y;
                         if (this._map[x][y + 1] === 0 /* nothing */) {
                             dy = y + 1;
-                        } else {
+                        }
+                        else {
                             if ((this._map[x][y + 1] === 1 /* stone */) || (this._map[x][y + 1] === 5 /* diamond */)) {
                                 if ((this._map[x - 1][y + 1] === 0 /* nothing */) && (this._map[x - 1][y] === 0 /* nothing */)) {
                                     dx = x - 1;
                                     dy = y + 1;
-                                } else if ((this._map[x + 1][y + 1] === 0 /* nothing */) && (this._map[x + 1][y] === 0 /* nothing */)) {
+                                }
+                                else if ((this._map[x + 1][y + 1] === 0 /* nothing */) && (this._map[x + 1][y] === 0 /* nothing */)) {
                                     dx = x + 1;
                                     dy = y + 1;
                                 }
@@ -626,7 +580,6 @@ var Digger;
                     }
                 }
             }
-
             for (var y = 13; y >= 0; y--) {
                 for (var x = 19; x >= 0; x--) {
                     if ((this._map[x][y] === 1 /* stone */) || (this._map[x][y] === 5 /* diamond */) || (this._map[x][y] === 9 /* uvstone */)) {
@@ -634,12 +587,14 @@ var Digger;
                         var dy = y;
                         if (this._map[x][y + 1] === 8 /* marker */) {
                             dy = y + 1;
-                        } else {
+                        }
+                        else {
                             if ((this._map[x][y + 1] === 1 /* stone */) || (this._map[x][y + 1] === 5 /* diamond */) || (this._map[x][y + 1] === 0 /* nothing */)) {
                                 if ((this._map[x - 1][y + 1] === 8 /* marker */) && ((this._map[x - 1][y] === 0 /* nothing */) || (this._map[x - 1][y] === 8 /* marker */))) {
                                     dx = x - 1;
                                     dy = y + 1;
-                                } else if ((this._map[x + 1][y + 1] === 8 /* marker */) && ((this._map[x + 1][y] === 0 /* nothing */) || (this._map[x + 1][y] === 8 /* marker */))) {
+                                }
+                                else if ((this._map[x + 1][y + 1] === 8 /* marker */) && ((this._map[x + 1][y] === 0 /* nothing */) || (this._map[x + 1][y] === 8 /* marker */))) {
                                     dx = x + 1;
                                     dy = y + 1;
                                 }
@@ -651,18 +606,17 @@ var Digger;
                         if ((dx != x) || (dy != y)) {
                             if ((dy - y) === 2) {
                                 this._map[dx][dy] = 5 /* diamond */;
-                            } else {
+                            }
+                            else {
                                 this._map[dx][dy] = this._map[x][y];
                                 if (this._map[dx][dy] === 9 /* uvstone */) {
                                     this._map[dx][dy] = 1 /* stone */;
                                 }
                             }
                             this._map[x][y] = 0 /* nothing */;
-
                             if ((this._map[dx][dy + 1] === 1 /* stone */) || (this._map[dx][dy + 1] === 5 /* diamond */) || (this._map[dx][dy + 1] === 6 /* wall */) || (this.isGhost(dx, dy + 1))) {
                                 this._soundTable[1 /* stone */] = true;
                             }
-
                             if (this.isPlayer(dx, dy + 1)) {
                                 this._player.kill();
                             }
@@ -673,11 +627,9 @@ var Digger;
                     }
                 }
             }
-
             for (var i = 0; i < this._ghosts.length; i++) {
                 this.moveGhost(this._ghosts[i]);
             }
-
             if (this._time > 0) {
                 this._time--;
             }
@@ -685,7 +637,6 @@ var Digger;
                 this._player.kill();
             }
         };
-
         Level.prototype.movePlayer = function (keys) {
             if (this._player.alive) {
                 this._player.direction = 0 /* none */;
@@ -695,17 +646,20 @@ var Digger;
                 if (keys[0 /* left */]) {
                     z.x--;
                     this._player.direction = 1 /* left */;
-                } else {
+                }
+                else {
                     this._player.stone[0] = false;
                     if (keys[1 /* right */]) {
                         z.x++;
                         this._player.direction = 2 /* right */;
-                    } else {
+                    }
+                    else {
                         this._player.stone[1] = false;
                         if (keys[2 /* up */]) {
                             z.y--;
                             this._player.direction = 3 /* up */;
-                        } else if (keys[3 /* down */]) {
+                        }
+                        else if (keys[3 /* down */]) {
                             z.y++;
                             this._player.direction = 4 /* down */;
                         }
@@ -728,7 +682,6 @@ var Digger;
                             }
                             this._player.stone[1] = !this._player.stone[1];
                         }
-
                         if ((z.x < d.x) && (this._map[z.x - 1][z.y] === 0 /* nothing */)) {
                             if (this._player.stone[0]) {
                                 this._map[d.x - 2][d.y] = this._map[d.x - 1][d.y];
@@ -737,44 +690,36 @@ var Digger;
                             this._player.stone[0] = !this._player.stone[0];
                         }
                     }
-
                     if ((this._map[z.x][z.y] === 0 /* nothing */) || (this._map[z.x][z.y] === 2 /* ground */) || (this._map[z.x][z.y] === 5 /* diamond */)) {
                         this.placePlayer(z.x, z.y);
                         this._map[d.x][d.y] = 13 /* buffer */;
                         this._soundTable[2 /* step */] = true;
                     }
-
                     if ((this._map[z.x][z.y] === 12 /* exit */) || (this._map[z.x][z.y] === 4 /* uvexit */)) {
                         if (this._collected >= this._diamonds) {
-                            return true;
+                            return true; // next level
                         }
                     }
-
                     if (this.isGhost(z.x, z.y)) {
                         this._player.kill();
                     }
                 }
-
                 // animate player
                 this._player.animate();
             }
             return false;
         };
-
         Level.prototype.isPlayer = function (x, y) {
             return (this._map[x][y] === 10 /* player */);
         };
-
         Level.prototype.placePlayer = function (x, y) {
             this._map[x][y] = 10 /* player */;
             this._player.position.x = x;
             this._player.position.y = y;
         };
-
         Level.prototype.isGhost = function (x, y) {
             return (this._map[x][y] == 7 /* ghost90L */) || (this._map[x][y] == 15 /* ghost90R */) || (this._map[x][y] == 11 /* ghost90LR */) || (this._map[x][y] == 3 /* ghost180 */);
         };
-
         Level.prototype.moveGhost = function (ghost) {
             if (ghost.alive) {
                 var p = ghost.position.clone();
@@ -797,7 +742,8 @@ var Digger;
                             w[0].y++;
                             w[1].y--;
                         }
-                    } else if (ghost.type === 7 /* ghost90L */) {
+                    }
+                    else if (ghost.type === 7 /* ghost90L */) {
                         if (ghost.direction === 1 /* left */) {
                             w[0].x--;
                             w[1].y++;
@@ -822,7 +768,8 @@ var Digger;
                             w[2].x--;
                             w[3].y--;
                         }
-                    } else if (ghost.type === 15 /* ghost90R */) {
+                    }
+                    else if (ghost.type === 15 /* ghost90R */) {
                         if (ghost.direction === 1 /* left */) {
                             w[0].x--;
                             w[1].y--;
@@ -873,44 +820,52 @@ var Digger;
                             }
                         }
                     }
-                } else if (ghost.type === 11 /* ghost90LR */) {
+                }
+                else if (ghost.type === 11 /* ghost90LR */) {
                     if (ghost.direction === 1 /* left */) {
                         w[0].x--;
                         w[3].x++;
                         if (ghost.lastTurn === 1 /* left */) {
                             w[1].y--;
                             w[2].y++;
-                        } else {
+                        }
+                        else {
                             w[1].y++;
                             w[2].y--;
                         }
-                    } else if (ghost.direction === 2 /* right */) {
+                    }
+                    else if (ghost.direction === 2 /* right */) {
                         w[0].x++;
                         w[3].x--;
                         if (ghost.lastTurn === 1 /* left */) {
                             w[1].y++;
                             w[2].y--;
-                        } else {
+                        }
+                        else {
                             w[1].y--;
                             w[2].y++;
                         }
-                    } else if (ghost.direction === 3 /* up */) {
+                    }
+                    else if (ghost.direction === 3 /* up */) {
                         w[0].y--;
                         w[3].y++;
                         if (ghost.lastTurn === 1 /* left */) {
                             w[1].x++;
                             w[2].x--;
-                        } else {
+                        }
+                        else {
                             w[1].x--;
                             w[2].x++;
                         }
-                    } else if (ghost.direction === 4 /* down */) {
+                    }
+                    else if (ghost.direction === 4 /* down */) {
                         w[0].y++;
                         w[3].y--;
                         if (ghost.lastTurn === 1 /* left */) {
                             w[1].x--;
                             w[2].x++;
-                        } else {
+                        }
+                        else {
                             w[1].x++;
                             w[2].x--;
                         }
@@ -942,21 +897,24 @@ var Digger;
                                     if (ghost.direction === 3 /* up */) {
                                         ghost.lastTurn = 2 /* right */;
                                     }
-                                } else if (lastDirection === 2 /* right */) {
+                                }
+                                else if (lastDirection === 2 /* right */) {
                                     if (ghost.direction === 4 /* down */) {
                                         ghost.lastTurn = 2 /* right */;
                                     }
                                     if (ghost.direction === 3 /* up */) {
                                         ghost.lastTurn = 1 /* left */;
                                     }
-                                } else if (lastDirection === 3 /* up */) {
+                                }
+                                else if (lastDirection === 3 /* up */) {
                                     if (ghost.direction === 1 /* left */) {
                                         ghost.lastTurn = 1 /* left */;
                                     }
                                     if (ghost.direction === 2 /* right */) {
                                         ghost.lastTurn = 2 /* right */;
                                     }
-                                } else if (lastDirection === 4 /* down */) {
+                                }
+                                else if (lastDirection === 4 /* down */) {
                                     if (ghost.direction === 1 /* left */) {
                                         ghost.lastTurn = 2 /* right */;
                                     }
@@ -973,13 +931,11 @@ var Digger;
                 }
             }
         };
-
         Level.prototype.placeGhost = function (x, y, ghost) {
             this._map[x][y] = ghost.type;
             ghost.position.x = x;
             ghost.position.y = y;
         };
-
         Level.prototype.killGhost = function (x, y) {
             var ghost = this.ghost(x, y);
             if (ghost.alive) {
@@ -988,7 +944,8 @@ var Digger;
                         if ((dx > 0) && (dx < 19) && (dy > 0) && (dy < 13)) {
                             if (this.isPlayer(dx, dy)) {
                                 this._player.kill();
-                            } else {
+                            }
+                            else {
                                 if (this.isGhost(dx, dy)) {
                                     this.ghost(dx, dy).kill();
                                     this._score += 99;
@@ -998,11 +955,9 @@ var Digger;
                         }
                     }
                 }
-
                 ghost.kill();
             }
         };
-
         Level.prototype.ghost = function (x, y) {
             for (var i = 0; i < this._ghosts.length; i++) {
                 var ghost = this._ghosts[i];
@@ -1012,7 +967,6 @@ var Digger;
             }
             return null;
         };
-
         Level.prototype.getSpriteIndex = function (x, y, blink) {
             switch (this._map[x][y]) {
                 case 0 /* nothing */:
@@ -1109,7 +1063,8 @@ Digger.Game.prototype.levelData = [
     "ZmZmZmZmZmZmZmIiIiYRERYCIqZiEhImEREWAhImYSEhJhERFgIhJmISEiARERACIiZiIiImEWEWMwAGYDAAJmYWZiISJmIiIiIiIiIiIiZiIiIiIhISEhImZmbu7mIubmLmJmAAAABgADAAAAZlAAAAYAAAADAGZVAAAGAAMFAAxmZmZmZmZmZmZmZ1IG3AbRIDIBIiIgAAAAAA",
     "ZmZmZmZmZmZmZmEREWISEhEgCQZhERFiISEhIAkGYRERYRISESAJBmEREWIiIiIgCQZmERZiIiIiKgCWZmJmAzAAAiIiJmIiImIiIiIiIiZiIiJmZubmIiImZm7uYAawBlVVVmAAAAsGBrZRURZgAAALtjYGFVVWYAAAAAYABlFVxmZmZmZmZmZmZmZ2wG1gbg8HQCIAAAAAAAAA",
     "ZmZmZmZmZmZmZmIRwiIioiIiJlZiEWISEiISERZWYhFiEhIhIhEWVmIhJmZmIiIiJlZiIiYiIiADAAZWZiImJmViIiImVmIiJiZWYAMABlZgMAYiImZmZiFmYmZmYm7u7iICJmERESJgYAIiAiZu7u7iYGBiYgYmYiIiImBgsLACVmZmZmZmZmZmZmZ3YG4AbwoDJyIgAAAAAAAA",
-    "ZmZmZmZmZmZmZmIiIhIiIqEiIhZhERIhESEiERImZVVQJVIlIlVbBmUiKyVRJSJSVSZlISAlJSUiURUWZVUgJSUlIlEVJmUiKyUiVSJRFRZlILAlIFUiURUmZREgJSslIlJVBmVVUCUABSJVUrZu7u7u7u7u7u7mbAAAAAAAAAAAxmZmZmZmZmZmZmaAQHAAAAwDdQAAAAAAAAAA"];
+    "ZmZmZmZmZmZmZmIiIhIiIqEiIhZhERIhESEiERImZVVQJVIlIlVbBmUiKyVRJSJSVSZlISAlJSUiURUWZVUgJSUlIlEVJmUiKyUiVSJRFRZlILAlIFUiURUmZREgJSslIlJVBmVVUCUABSJVUrZu7u7u7u7u7u7mbAAAAAAAAAAAxmZmZmZmZmZmZmaAQHAAAAwDdQAAAAAAAAAA"
+];
 var Digger;
 (function (Digger) {
     var Player = (function () {
@@ -1123,7 +1078,6 @@ var Digger;
         Player.prototype.kill = function () {
             this._alive = false;
         };
-
         Object.defineProperty(Player.prototype, "position", {
             get: function () {
                 return this._position;
@@ -1131,7 +1085,6 @@ var Digger;
             enumerable: true,
             configurable: true
         });
-
         Object.defineProperty(Player.prototype, "alive", {
             get: function () {
                 return this._alive;
@@ -1139,7 +1092,6 @@ var Digger;
             enumerable: true,
             configurable: true
         });
-
         Object.defineProperty(Player.prototype, "direction", {
             get: function () {
                 return this._direction;
@@ -1150,8 +1102,6 @@ var Digger;
             enumerable: true,
             configurable: true
         });
-
-
         Object.defineProperty(Player.prototype, "stone", {
             get: function () {
                 return this._stone;
@@ -1159,10 +1109,8 @@ var Digger;
             enumerable: true,
             configurable: true
         });
-
         Player.prototype.animate = function () {
             this._step++;
-
             switch (this._direction) {
                 case 1 /* left */:
                 case 2 /* right */:
@@ -1183,17 +1131,19 @@ var Digger;
                     break;
             }
         };
-
         Object.defineProperty(Player.prototype, "imageIndex", {
             get: function () {
                 if (this._alive) {
                     if ((this._direction === 1 /* left */) && (this._step < 6)) {
                         return [16, 17, 18, 19, 18, 17][this._step];
-                    } else if ((this._direction === 2 /* right */) && (this._step < 6)) {
+                    }
+                    else if ((this._direction === 2 /* right */) && (this._step < 6)) {
                         return [20, 21, 22, 23, 22, 21][this._step];
-                    } else if ((this._direction === 3 /* up */) && (this._step < 2)) {
+                    }
+                    else if ((this._direction === 3 /* up */) && (this._step < 2)) {
                         return [24, 25][this._step];
-                    } else if ((this._direction === 4 /* down */) && (this._step < 2)) {
+                    }
+                    else if ((this._direction === 4 /* down */) && (this._step < 2)) {
                         return [26, 27][this._step];
                     }
                     return [15, 15, 15, 15, 15, 15, 15, 15, 28, 28, 15, 15, 28, 28, 15, 15, 15, 15, 15, 15, 29, 29, 30, 30, 29, 29, 15, 15, 15, 15][this._step];
@@ -1217,7 +1167,6 @@ var Digger;
         Position.prototype.equals = function (position) {
             return (this.x == position.x) && (this.y == position.y);
         };
-
         Position.prototype.clone = function () {
             return new Position(this.x, this.y);
         };
